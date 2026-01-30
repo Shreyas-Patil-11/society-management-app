@@ -7,8 +7,12 @@
 
 // Base URL from environment
 // import Config from 'react-native-config';
-// const BASE_URL = Config.API_BASE_URL;
-const BASE_URL = 'https://api.yoursociety.com/v1';
+import { API_CONFIG } from '../../config/appConfig';
+
+// Use Config.API_BASE_URL if available, otherwise fallback to Android Emulator localhost
+const BASE_URL = API_CONFIG.BASE_URL || 'http://10.0.3.216:5000/api';
+
+// const BASE_URL = 'http://localhost:5000/api'; // This will not work on Android Emulator
 
 /**
  * Authentication Endpoints

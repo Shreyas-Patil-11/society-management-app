@@ -83,12 +83,17 @@ const HomeScreen = () => {
     navigation.navigate(route);
   };
 
+  const firstName =
+  typeof user?.name === 'string' && user.name.trim().length > 0
+    ? user.name.trim().split(' ')[0]
+    : 'Resident';
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background.primary} />
       
       {/* ✅ UPDATED HEADER: Links to Profile */}
-      <Header
+      {/* <Header
         title={`Hi, ${user?.name?.split(' ')[0] || 'Resident'}`}
         subtitle={`${user?.building || 'Block A'} - ${user?.flat || '101'}`}
         titleAlign="left"
@@ -100,7 +105,19 @@ const HomeScreen = () => {
           { icon: 'person', onPress: () => navigation.navigate('Profile') },
           { icon: 'notifications-none', onPress: () => navigation.navigate('Notifications') },
         ]}
-      />
+      /> */}
+
+      <Header
+  title={`Hi, ${firstName}`}
+  subtitle={`${user?.building || 'Block A'} - ${user?.flat || '101'}`}
+  titleAlign="left"
+  showBack={false}
+  onTitlePress={() => navigation.navigate('Profile')}
+  rightIcons={[
+    { icon: 'person', onPress: () => navigation.navigate('Profile') },
+    { icon: 'notifications-none', onPress: () => navigation.navigate('Notifications') },
+  ]}
+/>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
