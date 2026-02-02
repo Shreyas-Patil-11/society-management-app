@@ -1,23 +1,15 @@
 
-
+// /**
+//  * Sign In Screen
+//  * src/screens/auth/SignInScreen.js
+//  */
 // import React, { useState, useRef } from 'react';
 // import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   ScrollView,
-//   TouchableOpacity,
-//   KeyboardAvoidingView,
-//   Platform,
-//   Keyboard,
-//   Alert,
+//   View, Text, StyleSheet, ScrollView, TouchableOpacity,
+//   KeyboardAvoidingView, Platform, Keyboard, Alert
 // } from 'react-native';
 // import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-// // FOR CLI:
 // import Icon from 'react-native-vector-icons/MaterialIcons';
-// // --------------------------------------------------------------------------
 
 // import { colors } from '../../theme/colors';
 // import { typography } from '../../theme/typography';
@@ -38,43 +30,29 @@
 //   const { signInWithEmail, sendOTP } = useAuth();
 //   const { showSuccess, showError } = useToast();
 
-//   // State
-//   const [authMethod, setAuthMethod] = useState('phone'); // 'phone' or 'email'
+//   const [authMethod, setAuthMethod] = useState('phone');
 //   const [isLoading, setIsLoading] = useState(false);
-
-//   // Refs for focusing next input
 //   const passwordRef = useRef(null);
 
-//   // --- FORM 1: PHONE ---
-//   const phoneForm = useForm(
-//     { phone: '' },
-//     (values) => {
-//       const errors = {};
-//       if (!values.phone) errors.phone = 'Phone number is required';
-//       else if (!isValidPhone(values.phone)) errors.phone = 'Invalid phone number';
-//       return errors;
-//     }
-//   );
+//   // Forms setup
+//   const phoneForm = useForm({ phone: '' }, (values) => {
+//     const errors = {};
+//     if (!values.phone) errors.phone = 'Phone number is required';
+//     else if (!isValidPhone(values.phone)) errors.phone = 'Invalid phone number';
+//     return errors;
+//   });
 
-//   // --- FORM 2: EMAIL ---
-//   const emailForm = useForm(
-//     { email: '', password: '' },
-//     (values) => {
-//       const errors = {};
-//       if (!values.email) errors.email = 'Email is required';
-//       else if (!isValidEmail(values.email)) errors.email = 'Invalid email format';
-//       if (!values.password) errors.password = 'Password is required';
-//       return errors;
-//     }
-//   );
+//   const emailForm = useForm({ email: '', password: '' }, (values) => {
+//     const errors = {};
+//     if (!values.email) errors.email = 'Email is required';
+//     else if (!isValidEmail(values.email)) errors.email = 'Invalid email format';
+//     if (!values.password) errors.password = 'Password is required';
+//     return errors;
+//   });
 
-//   /**
-//    * Handle Phone + OTP Flow
-//    */
 //   const handlePhoneSignIn = async () => {
 //     Keyboard.dismiss();
-//     const isValid = phoneForm.validateForm();
-//     if (!isValid) return;
+//     if (!phoneForm.validateForm()) return;
 
 //     setIsLoading(true);
 //     try {
@@ -95,63 +73,30 @@
 //     }
 //   };
 
-//   /**
-//    * Handle Email + Password Flow
-//    */
-//   // const handleEmailSignIn = async () => {
-//   //   Keyboard.dismiss();
-//   //   const isValid = emailForm.validateForm();
-//   //   if (!isValid) return;
-
-//   //   setIsLoading(true);
-//   //   try {
-//   //     // Logic: The backend should return the user object with the role inside it
-//   //     const result = await signInWithEmail(emailForm.values.email, emailForm.values.password);
-
-//   //     if (result.success) {
-//   //       showSuccess('Welcome back!');
-//   //       // NOTE: Usually AuthContext detects the login and RootNavigator switches stacks.
-//   //       // If not, we show this alert:
-//   //       Alert.alert('Under Development', 'Login Successful. Redirecting to Dashboard...');
-//   //     } else {
-//   //       showError(result.message || 'Invalid email or password');
-//   //     }
-//   //   } catch (error) {
-//   //     showError('Something went wrong. Please try again.');
-//   //   } finally {
-//   //     setIsLoading(false);
-//   //   }
-//   // };
-
 //   const handleEmailSignIn = async () => {
-//   Keyboard.dismiss();
-//   const isValid = emailForm.validateForm();
-//   if (!isValid) return;
+//     Keyboard.dismiss();
+//     if (!emailForm.validateForm()) return;
 
-//   setIsLoading(true);
-//   try {
-//     const result = await signInWithEmail(
-//       emailForm.values.email,
-//       emailForm.values.password
-//     );
+//     setIsLoading(true);
+//     try {
+//       const result = await signInWithEmail(
+//         emailForm.values.email,
+//         emailForm.values.password
+//       );
 
-//     if (result.success) {
-//       showSuccess('Welcome back!');
-
-//       navigation.reset({
-//         index: 0,
-//         routes: [{ name: 'ResidentTabs' }],
-//       });
-//     } else {
-//       showError(result.message || 'Invalid email or password');
+//       if (result.success) {
+//         showSuccess('Welcome back!');
+//         // DO NOT NAVIGATE MANUALLY.
+//         // RootNavigator handles the switch based on AuthContext state.
+//       } else {
+//         showError(result.message || 'Invalid email or password');
+//       }
+//     } catch (error) {
+//       showError('Something went wrong. Please try again.');
+//     } finally {
+//       setIsLoading(false);
 //     }
-//   } catch (error) {
-//     showError('Something went wrong. Please try again.');
-//   } finally {
-//     setIsLoading(false);
-//   }
-// };
-
+//   };
 
 //   return (
 //     <KeyboardAvoidingView
@@ -166,7 +111,6 @@
 //         keyboardShouldPersistTaps="handled"
 //         showsVerticalScrollIndicator={false}>
         
-//         {/* Header */}
 //         <View style={styles.header}>
 //           <View style={styles.logoContainer}>
 //             <Icon name="apartment" size={40} color={colors.primary.main} />
@@ -175,44 +119,26 @@
 //           <Text style={styles.subtitle}>Sign in to continue</Text>
 //         </View>
 
-//         {/* --- TABS SWITCHER --- */}
 //         <View style={styles.tabContainer}>
 //           <TouchableOpacity
 //             style={[styles.tab, authMethod === 'phone' && styles.activeTab]}
 //             onPress={() => setAuthMethod('phone')}
 //           >
-//             <Icon 
-//               name="phone" 
-//               size={20} 
-//               color={authMethod === 'phone' ? colors.primary.main : colors.text.tertiary} 
-//             />
-//             <Text style={[styles.tabText, authMethod === 'phone' && styles.activeTabText]}>
-//               Email
-//             </Text>
+//             <Icon name="phone" size={20} color={authMethod === 'phone' ? colors.primary.main : colors.text.tertiary} />
+//             <Text style={[styles.tabText, authMethod === 'phone' && styles.activeTabText]}>Mobile</Text>
 //           </TouchableOpacity>
 
 //           <TouchableOpacity
 //             style={[styles.tab, authMethod === 'email' && styles.activeTab]}
 //             onPress={() => setAuthMethod('email')}
 //           >
-//             <Icon 
-//               name="phone-android" 
-//               size={20} 
-//               color={authMethod === 'email' ? colors.primary.main : colors.text.tertiary} 
-//             />
-//             <Text style={[styles.tabText, authMethod === 'email' && styles.activeTabText]}>
-//               Mobile
-//             </Text>
+//             <Icon name="email" size={20} color={authMethod === 'email' ? colors.primary.main : colors.text.tertiary} />
+//             <Text style={[styles.tabText, authMethod === 'email' && styles.activeTabText]}>Email</Text>
 //           </TouchableOpacity>
-
-          
 //         </View>
 
-//         {/* --- FORM AREA --- */}
 //         <View style={styles.formContainer}>
-          
-//           {authMethod === 'phone' ?  (
-//             /* EMAIL FORM */
+//           {authMethod === 'email' ? (
 //             <View>
 //               <Input
 //                 label="Email Address"
@@ -240,15 +166,6 @@
 //                 returnKeyType="done"
 //                 onSubmitEditing={handleEmailSignIn}
 //               />
-              
-//               {/* Forgot Password Link */}
-//               <TouchableOpacity 
-//                 style={styles.forgotPassContainer}
-//                 onPress={() => Alert.alert('Under Development', 'Forgot Password Flow')}
-//               >
-//                 <Text style={styles.forgotPassText}>Forgot Password?</Text>
-//               </TouchableOpacity>
-
 //               <Button
 //                 title="Sign In"
 //                 onPress={handleEmailSignIn}
@@ -257,8 +174,7 @@
 //                 style={styles.submitButton}
 //               />
 //             </View>
-//           ):(
-//             /* PHONE FORM */
+//           ) : (
 //             <View>
 //               <Input
 //                 label="Mobile Number"
@@ -281,14 +197,11 @@
 //                 style={styles.submitButton}
 //               />
 //             </View>
-//           ) }
-
+//           )}
 //         </View>
 
-//         {/* Divider */}
 //         <Divider text="OR" style={styles.divider} />
 
-//         {/* Sign Up Link */}
 //         <View style={styles.signUpContainer}>
 //           <Text style={styles.signUpText}>New Resident? </Text>
 //           <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
@@ -302,99 +215,27 @@
 // };
 
 // const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: colors.background.primary,
-//   },
+//   container: { flex: 1, backgroundColor: colors.background.primary },
 //   scrollView: { flex: 1 },
 //   scrollContent: { paddingHorizontal: spacing.xl },
-//   header: {
-//     alignItems: 'center',
-//     marginBottom: spacing.xl,
-//   },
-//   logoContainer: {
-//     width: 80,
-//     height: 80,
-//     borderRadius: 20,
-//     backgroundColor: colors.primary.background,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     marginBottom: spacing.lg,
-//   },
-//   title: {
-//     ...typography.textStyles.h1,
-//     color: colors.text.primary,
-//     marginBottom: spacing.xs,
-//   },
-//   subtitle: {
-//     ...typography.textStyles.bodyMedium,
-//     color: colors.text.secondary,
-//     textAlign: 'center',
-//   },
-//   // TABS STYLES
-//   tabContainer: {
-//     flexDirection: 'row',
-//     backgroundColor: colors.background.secondary,
-//     borderRadius: borderRadius.lg,
-//     padding: 4,
-//     marginBottom: spacing.xl,
-//   },
-//   tab: {
-//     flex: 1,
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     paddingVertical: spacing.md,
-//     borderRadius: borderRadius.md - 2,
-//     gap: 8,
-//   },
-//   activeTab: {
-//     backgroundColor: colors.background.primary,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 1 },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 2,
-//     elevation: 2,
-//   },
-//   tabText: {
-//     ...typography.textStyles.labelMedium,
-//     color: colors.text.tertiary,
-//     fontWeight: '600',
-//   },
-//   activeTabText: {
-//     color: colors.primary.main,
-//   },
-//   // FORM STYLES
+//   header: { alignItems: 'center', marginBottom: spacing.xl },
+//   logoContainer: { width: 80, height: 80, borderRadius: 20, backgroundColor: colors.primary.background, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
+//   title: { ...typography.textStyles.h1, color: colors.text.primary, marginBottom: spacing.xs },
+//   subtitle: { ...typography.textStyles.bodyMedium, color: colors.text.secondary, textAlign: 'center' },
+//   tabContainer: { flexDirection: 'row', backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg, padding: 4, marginBottom: spacing.xl },
+//   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.md, borderRadius: borderRadius.md - 2, gap: 8 },
+//   activeTab: { backgroundColor: colors.background.primary, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+//   tabText: { ...typography.textStyles.labelMedium, color: colors.text.tertiary, fontWeight: '600' },
+//   activeTabText: { color: colors.primary.main },
 //   formContainer: { marginBottom: spacing.lg },
 //   submitButton: { marginTop: spacing.sm },
-//   forgotPassContainer: {
-//     alignSelf: 'flex-end',
-//     marginBottom: spacing.lg,
-//     marginTop: -spacing.sm,
-//   },
-//   forgotPassText: {
-//     ...typography.textStyles.labelMedium,
-//     color: colors.primary.main,
-//   },
 //   divider: { marginVertical: spacing.lg },
-//   signUpContainer: {
-//     flexDirection: 'row',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     marginBottom: spacing.xxl,
-//   },
-//   signUpText: {
-//     ...typography.textStyles.bodyMedium,
-//     color: colors.text.secondary,
-//   },
-//   signUpLink: {
-//     ...typography.textStyles.labelLarge,
-//     color: colors.primary.main,
-//   },
+//   signUpContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.xxl },
+//   signUpText: { ...typography.textStyles.bodyMedium, color: colors.text.secondary },
+//   signUpLink: { ...typography.textStyles.labelLarge, color: colors.primary.main },
 // });
 
 // export default SignInScreen;
-
 
 /**
  * Sign In Screen
@@ -402,8 +243,15 @@
  */
 import React, { useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Keyboard, Alert
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -431,7 +279,6 @@ const SignInScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const passwordRef = useRef(null);
 
-  // Forms setup
   const phoneForm = useForm({ phone: '' }, (values) => {
     const errors = {};
     if (!values.phone) errors.phone = 'Phone number is required';
@@ -454,11 +301,12 @@ const SignInScreen = ({ navigation }) => {
     setIsLoading(true);
     try {
       const result = await sendOTP(phoneForm.values.phone);
+
       if (result.success) {
         showSuccess('OTP sent successfully');
         navigation.navigate('OTPVerification', {
           phone: phoneForm.values.phone,
-          isLogin: true 
+          isLogin: true,
         });
       } else {
         showError(result.message || 'Failed to send OTP');
@@ -470,44 +318,118 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
+  /**
+   * ✅ helper: detect user not found
+   */
+  // const isUserNotFound = (result) => {
+  //   const code = result?.code;
+  //   const msg = (result?.message || '').toLowerCase();
+
+  //   return (
+  //     code === 'USER_NOT_FOUND' ||
+  //     msg.includes('user not found') ||
+  //     msg.includes('account not found') ||
+  //     msg.includes('not registered') ||
+  //     msg.includes('does not exist')
+  //   );
+  // };
+
+  const isUserNotFound = (result) => {
+  return result?.success === false && result?.code === 'USER_NOT_FOUND';
+};
+
+
+  // const handleEmailSignIn = async () => {
+  //   Keyboard.dismiss();
+  //   if (!emailForm.validateForm()) return;
+
+  //   setIsLoading(true);
+  //   try {
+  //     const result = await signInWithEmail(
+  //       emailForm.values.email,
+  //       emailForm.values.password
+  //     );
+
+  //     console.log('EMAIL LOGIN RESULT ===>', result);
+
+  //     if (result.success) {
+  //       showSuccess('Welcome back!');
+  //       return;
+  //     }
+
+  //     // ✅ redirect to signup (NO popup)
+  //     if (isUserNotFound(result)) {
+  //       navigation.navigate('SignUp', {
+  //         email: emailForm.values.email,
+  //       });
+  //       return;
+  //     }
+
+  //     // ❌ other errors show popup
+  //     showError(result.message || 'Invalid email or password');
+  //   } catch (error) {
+  //     showError('Something went wrong. Please try again.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleEmailSignIn = async () => {
-    Keyboard.dismiss();
-    if (!emailForm.validateForm()) return;
+  Keyboard.dismiss();
+  if (!emailForm.validateForm()) return;
 
-    setIsLoading(true);
-    try {
-      const result = await signInWithEmail(
-        emailForm.values.email,
-        emailForm.values.password
-      );
+  setIsLoading(true);
+  try {
+    const result = await signInWithEmail(
+      emailForm.values.email,
+      emailForm.values.password
+    );
 
-      if (result.success) {
-        showSuccess('Welcome back!');
-        // DO NOT NAVIGATE MANUALLY.
-        // RootNavigator handles the switch based on AuthContext state.
-      } else {
-        showError(result.message || 'Invalid email or password');
-      }
-    } catch (error) {
-      showError('Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    console.log("EMAIL LOGIN RESULT ===>", result);
+
+    // ✅ success
+   if (result?.success === true) {
+  showSuccess("Welcome back!");
+  return;
+}
+
+if (result?.success === false && result?.code === "USER_NOT_FOUND") {
+  navigation.navigate("SignUp", { email: emailForm.values.email });
+  return;
+}
+
+showError(result?.message || "Login failed");
+
+  } catch (error) {
+    showError("Something went wrong. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.background.primary}
+      />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + spacing.xxxl, paddingBottom: insets.bottom + spacing.xl },
+          {
+            paddingTop: insets.top + spacing.xxxl,
+            paddingBottom: insets.bottom + spacing.xl,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Icon name="apartment" size={40} color={colors.primary.main} />
@@ -521,16 +443,46 @@ const SignInScreen = ({ navigation }) => {
             style={[styles.tab, authMethod === 'phone' && styles.activeTab]}
             onPress={() => setAuthMethod('phone')}
           >
-            <Icon name="phone" size={20} color={authMethod === 'phone' ? colors.primary.main : colors.text.tertiary} />
-            <Text style={[styles.tabText, authMethod === 'phone' && styles.activeTabText]}>Mobile</Text>
+            <Icon
+              name="phone"
+              size={20}
+              color={
+                authMethod === 'phone'
+                  ? colors.primary.main
+                  : colors.text.tertiary
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                authMethod === 'phone' && styles.activeTabText,
+              ]}
+            >
+              Mobile
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.tab, authMethod === 'email' && styles.activeTab]}
             onPress={() => setAuthMethod('email')}
           >
-            <Icon name="email" size={20} color={authMethod === 'email' ? colors.primary.main : colors.text.tertiary} />
-            <Text style={[styles.tabText, authMethod === 'email' && styles.activeTabText]}>Email</Text>
+            <Icon
+              name="email"
+              size={20}
+              color={
+                authMethod === 'email'
+                  ? colors.primary.main
+                  : colors.text.tertiary
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                authMethod === 'email' && styles.activeTabText,
+              ]}
+            >
+              Email
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -550,19 +502,27 @@ const SignInScreen = ({ navigation }) => {
                 returnKeyType="next"
                 onSubmitEditing={() => passwordRef.current?.focus()}
               />
+
               <Input
                 ref={passwordRef}
                 label="Password"
                 placeholder="Enter your password"
                 value={emailForm.values.password}
-                onChangeText={(text) => emailForm.handleChange('password', text)}
+                onChangeText={(text) =>
+                  emailForm.handleChange('password', text)
+                }
                 onBlur={() => emailForm.handleBlur('password')}
-                error={emailForm.touched.password ? emailForm.errors.password : null}
+                error={
+                  emailForm.touched.password
+                    ? emailForm.errors.password
+                    : null
+                }
                 type="password"
                 leftIcon="lock"
                 returnKeyType="done"
                 onSubmitEditing={handleEmailSignIn}
               />
+
               <Button
                 title="Sign In"
                 onPress={handleEmailSignIn}
@@ -586,6 +546,7 @@ const SignInScreen = ({ navigation }) => {
                 returnKeyType="done"
                 onSubmitEditing={handlePhoneSignIn}
               />
+
               <Button
                 title="Get OTP"
                 onPress={handlePhoneSignIn}
@@ -605,7 +566,6 @@ const SignInScreen = ({ navigation }) => {
             <Text style={styles.signUpLink}>Create Account</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -616,20 +576,72 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { paddingHorizontal: spacing.xl },
   header: { alignItems: 'center', marginBottom: spacing.xl },
-  logoContainer: { width: 80, height: 80, borderRadius: 20, backgroundColor: colors.primary.background, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
-  title: { ...typography.textStyles.h1, color: colors.text.primary, marginBottom: spacing.xs },
-  subtitle: { ...typography.textStyles.bodyMedium, color: colors.text.secondary, textAlign: 'center' },
-  tabContainer: { flexDirection: 'row', backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg, padding: 4, marginBottom: spacing.xl },
-  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.md, borderRadius: borderRadius.md - 2, gap: 8 },
-  activeTab: { backgroundColor: colors.background.primary, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  tabText: { ...typography.textStyles.labelMedium, color: colors.text.tertiary, fontWeight: '600' },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: colors.primary.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    ...typography.textStyles.h1,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    ...typography.textStyles.bodyMedium,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.background.secondary,
+    borderRadius: borderRadius.lg,
+    padding: 4,
+    marginBottom: spacing.xl,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md - 2,
+    gap: 8,
+  },
+  activeTab: {
+    backgroundColor: colors.background.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  tabText: {
+    ...typography.textStyles.labelMedium,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+  },
   activeTabText: { color: colors.primary.main },
   formContainer: { marginBottom: spacing.lg },
   submitButton: { marginTop: spacing.sm },
   divider: { marginVertical: spacing.lg },
-  signUpContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: spacing.xxl },
-  signUpText: { ...typography.textStyles.bodyMedium, color: colors.text.secondary },
-  signUpLink: { ...typography.textStyles.labelLarge, color: colors.primary.main },
+  signUpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xxl,
+  },
+  signUpText: {
+    ...typography.textStyles.bodyMedium,
+    color: colors.text.secondary,
+  },
+  signUpLink: {
+    ...typography.textStyles.labelLarge,
+    color: colors.primary.main,
+  },
 });
 
 export default SignInScreen;
