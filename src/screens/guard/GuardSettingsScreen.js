@@ -22,9 +22,9 @@
 //   return (
 //     <View style={styles.container}>
 //       <Header title="Settings" showBack />
-      
+
 //       <View style={styles.content}>
-        
+
 //         {/* Profile Card */}
 //         <View style={styles.card}>
 //           <View style={styles.avatar}>
@@ -165,22 +165,22 @@ const GuardSettingsScreen = ({ navigation }) => {
   const [isOnDuty, setIsOnDuty] = useState(true);
   const [notifEnabled, setNotifEnabled] = useState(true);
 
-  const handleDutyToggle = (val) => {
+  const handleDutyToggle = val => {
     if (!val) {
       Alert.alert(
         'Go Off Duty?',
         'You will stop receiving visitor alerts. Confirm?',
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Go Off Duty', 
+          {
+            text: 'Go Off Duty',
             style: 'destructive',
             onPress: () => {
               setIsOnDuty(false);
               showSuccess('You are now Off Duty');
-            } 
-          }
-        ]
+            },
+          },
+        ],
       );
     } else {
       setIsOnDuty(true);
@@ -194,34 +194,47 @@ const GuardSettingsScreen = ({ navigation }) => {
       'Are you handing over the charge to the next guard?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Confirm Handover', 
+        {
+          text: 'Confirm Handover',
           onPress: () => {
             showSuccess('Shift Handover Logged');
             // Logic to logout or reset logs could go here
-          } 
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
-  const SettingItem = ({ icon, label, type, value, onToggle, onPress, color }) => (
-    <TouchableOpacity 
-      style={styles.item} 
-      onPress={onPress} 
+  const SettingItem = ({
+    icon,
+    label,
+    type,
+    value,
+    onToggle,
+    onPress,
+    color,
+  }) => (
+    <TouchableOpacity
+      style={styles.item}
+      onPress={onPress}
       disabled={type === 'toggle'}
     >
       <View style={styles.itemLeft}>
-        <View style={[styles.iconBox, { backgroundColor: (color || colors.primary.main) + '15' }]}>
+        <View
+          style={[
+            styles.iconBox,
+            { backgroundColor: (color || colors.primary.main) + '15' },
+          ]}
+        >
           <Icon name={icon} size={22} color={color || colors.primary.main} />
         </View>
         <Text style={styles.itemLabel}>{label}</Text>
       </View>
-      
+
       {type === 'toggle' ? (
-        <Switch 
-          value={value} 
-          onValueChange={onToggle} 
+        <Switch
+          value={value}
+          onValueChange={onToggle}
           trackColor={{ true: colors.primary.main, false: colors.border.main }}
           thumbColor={colors.white}
         />
@@ -234,19 +247,24 @@ const GuardSettingsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Header title="Settings & Shift" showBack />
-      
+
       <ScrollView contentContainerStyle={styles.content}>
-        
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'G'}</Text>
+            <Text style={styles.avatarText}>
+              {user?.name?.charAt(0) || 'G'}
+            </Text>
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{user?.name || 'Ramesh Kumar'}</Text>
             <Text style={styles.role}>Main Gate Security</Text>
             <View style={styles.statusRow}>
-              <StatusBadge status={isOnDuty ? 'approved' : 'rejected'} label={isOnDuty ? 'ON DUTY' : 'OFF DUTY'} size="small" />
+              <StatusBadge
+                status={isOnDuty ? 'approved' : 'rejected'}
+                label={isOnDuty ? 'ON DUTY' : 'OFF DUTY'}
+                size="small"
+              />
               <Text style={styles.shiftText}> • Morning Shift (6AM - 2PM)</Text>
             </View>
           </View>
@@ -260,16 +278,22 @@ const GuardSettingsScreen = ({ navigation }) => {
               <Text style={styles.dutyLabel}>Duty Status</Text>
               <Text style={styles.dutySub}>Toggle to receive alerts</Text>
             </View>
-            <Switch 
-              value={isOnDuty} 
-              onValueChange={handleDutyToggle} 
-              trackColor={{ true: colors.success.main, false: colors.border.main }}
+            <Switch
+              value={isOnDuty}
+              onValueChange={handleDutyToggle}
+              trackColor={{
+                true: colors.success.main,
+                false: colors.border.main,
+              }}
             />
           </View>
-          
+
           <View style={styles.divider} />
-          
-          <TouchableOpacity style={styles.handoverBtn} onPress={handleShiftHandover}>
+
+          <TouchableOpacity
+            style={styles.handoverBtn}
+            onPress={handleShiftHandover}
+          >
             <Icon name="history-edu" size={20} color={colors.primary.main} />
             <Text style={styles.handoverText}>Log Shift Handover</Text>
           </TouchableOpacity>
@@ -278,41 +302,43 @@ const GuardSettingsScreen = ({ navigation }) => {
         {/* App Settings */}
         <Text style={styles.sectionTitle}>APP SETTINGS</Text>
         <View style={styles.card}>
-          <SettingItem 
-            icon="notifications" 
-            label="Push Notifications" 
-            type="toggle" 
-            value={notifEnabled} 
-            onToggle={setNotifEnabled} 
+          <SettingItem
+            icon="notifications"
+            label="Push Notifications"
+            type="toggle"
+            value={notifEnabled}
+            onToggle={setNotifEnabled}
           />
           <View style={styles.divider} />
-          <SettingItem 
-            icon="lock" 
-            label="Change PIN / Password" 
-            onPress={() => {}} 
+          <SettingItem
+            icon="lock"
+            label="Change PIN / Password"
+            onPress={() => navigation.navigate('ChangePassword')}
           />
           <View style={styles.divider} />
-          <SettingItem 
-            icon="help-outline" 
-            label="Help & Support" 
-            onPress={() => navigation.navigate('GuardSupport')} 
+          <SettingItem
+            icon="help-outline"
+            label="Help & Support"
+            onPress={() => navigation.navigate('GuardSupport')}
           />
         </View>
 
         {/* Logout */}
         <View style={styles.logoutContainer}>
-          <Button 
-            title="Logout" 
-            icon="logout" 
+          <Button
+            title="Logout"
+            icon="logout"
             onPress={signOut}
             // 1. Set background to RED
-            style={{ backgroundColor: colors.error.main, borderColor: colors.error.main }} 
+            style={{
+              backgroundColor: colors.error.main,
+              borderColor: colors.error.main,
+            }}
             // 2. Set text/icon color to WHITE
             textStyle={{ color: colors.white }}
           />
           <Text style={styles.version}>Version 1.0.0 (Build 45)</Text>
         </View>
-
       </ScrollView>
     </View>
   );

@@ -1,10 +1,10 @@
 
 // /**
 //  * Resident Home Screen
-//  * * Main dashboard for residents.
+//  * Connected to Backend API
 //  */
 
-// import React, { useState } from 'react';
+// import React, { useState, useEffect, useCallback } from 'react';
 // import {
 //   View,
 //   Text,
@@ -13,9 +13,11 @@
 //   TouchableOpacity,
 //   RefreshControl,
 //   StatusBar,
+//   ActivityIndicator
 // } from 'react-native';
 // import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // import Icon from 'react-native-vector-icons/MaterialIcons';
+// import { useFocusEffect } from '@react-navigation/native'; // Update on tab switch
 
 // import { colors } from '../../../theme/colors';
 // import { typography } from '../../../theme/typography';
@@ -29,13 +31,7 @@
 
 // import { useAuth } from '../../../hooks/useAuth';
 // import { useNavigation } from '@react-navigation/native';
-
-// // Mock data for recent visitors
-// const MOCK_RECENT_VISITORS = [
-//   { id: '1', name: 'Rohan Das', type: 'Delivery', company: 'Swiggy', time: '10:30 AM', date: 'Today', status: 'approved' },
-//   { id: '2', name: 'Priya Singh', type: 'Guest', company: null, time: '8:15 PM', date: 'Yesterday', status: 'approved' },
-//   { id: '3', name: 'Uber Driver', type: 'Cab', company: 'Uber', time: '6:00 PM', date: 'Yesterday', status: 'rejected' },
-// ];
+// import { visitorService } from '../../../services/visitorService'; // Import Service
 
 // const QuickAction = ({ icon, label, color, onPress }) => (
 //   <TouchableOpacity style={styles.actionItem} onPress={onPress}>
@@ -62,8 +58,11 @@
 //       </Text>
 //     </View>
 //     <View style={styles.visitorMeta}>
-//       <Text style={styles.visitorTime}>{visitor.date === 'Today' ? visitor.time : visitor.date}</Text>
-//       <StatusBadge status={visitor.status} size="small" />
+//       <Text style={styles.visitorTime}>
+//         {/* Simple time formatting */}
+//         {new Date(visitor.date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+//       </Text>
+//       <StatusBadge status={visitor.status || 'pending'} size="small" />
 //     </View>
 //   </View>
 // );
@@ -72,52 +71,64 @@
 //   const insets = useSafeAreaInsets();
 //   const navigation = useNavigation();
 //   const { user } = useAuth();
+  
+//   // State for Real Data
+//   const [visitors, setVisitors] = useState([]);
 //   const [refreshing, setRefreshing] = useState(false);
+//   const [loading, setLoading] = useState(true);
 
+//   // Fetch Data Function
+//   const fetchDashboardData = async () => {
+//     try {
+//       const result = await visitorService.getRecentVisitors();
+//       if (result.success) {
+//         setVisitors(result.data);
+//       }
+//     } catch (error) {
+//       console.log('Error fetching dashboard:', error);
+//     } finally {
+//       setLoading(false);
+//       setRefreshing(false);
+//     }
+//   };
+
+//   // Initial Load
+//   useEffect(() => {
+//     fetchDashboardData();
+//   }, []);
+
+//   // Refresh on Pull
 //   const onRefresh = () => {
 //     setRefreshing(true);
-//     setTimeout(() => setRefreshing(false), 1500);
+//     fetchDashboardData();
 //   };
+
+//   // Refresh when screen comes into focus (e.g., after adding a visitor)
+//   useFocusEffect(
+//     useCallback(() => {
+//       fetchDashboardData();
+//     }, [])
+//   );
 
 //   const handleQuickAction = (route) => {
 //     navigation.navigate(route);
 //   };
 
-//   const firstName =
-//   typeof user?.name === 'string' && user.name.trim().length > 0
-//     ? user.name.trim().split(' ')[0]
-//     : 'Resident';
-
 //   return (
 //     <View style={styles.container}>
 //       <StatusBar barStyle="dark-content" backgroundColor={colors.background.primary} />
       
-//       {/* ✅ UPDATED HEADER: Links to Profile */}
-//       {/* <Header
+//       <Header
 //         title={`Hi, ${user?.name?.split(' ')[0] || 'Resident'}`}
 //         subtitle={`${user?.building || 'Block A'} - ${user?.flat || '101'}`}
 //         titleAlign="left"
 //         showBack={false}
-//         // M Profile
 //         onTitlePress={() => navigation.navigate('Profile')} 
 //         rightIcons={[
-//           // Added Profile Icon here
 //           { icon: 'person', onPress: () => navigation.navigate('Profile') },
 //           { icon: 'notifications-none', onPress: () => navigation.navigate('Notifications') },
 //         ]}
-//       /> */}
-
-//       <Header
-//   title={`Hi, ${firstName}`}
-//   subtitle={`${user?.building || 'Block A'} - ${user?.flat || '101'}`}
-//   titleAlign="left"
-//   showBack={false}
-//   onTitlePress={() => navigation.navigate('Profile')}
-//   rightIcons={[
-//     { icon: 'person', onPress: () => navigation.navigate('Profile') },
-//     { icon: 'notifications-none', onPress: () => navigation.navigate('Notifications') },
-//   ]}
-// />
+//       />
 
 //       <ScrollView
 //         showsVerticalScrollIndicator={false}
@@ -191,7 +202,7 @@
 //           </Card>
 //         </TouchableOpacity>
 
-//         {/* Recent Visitors */}
+//         {/* Recent Visitors Section */}
 //         <View style={styles.sectionHeader}>
 //           <Text style={styles.sectionTitle}>Recent Visitors</Text>
 //           <TouchableOpacity onPress={() => navigation.navigate('ServicesTab')}>
@@ -200,12 +211,22 @@
 //         </View>
 
 //         <Card style={styles.visitorsCard}>
-//           {MOCK_RECENT_VISITORS.map((visitor, index) => (
-//             <React.Fragment key={visitor.id}>
-//               <VisitorItem visitor={visitor} />
-//               {index < MOCK_RECENT_VISITORS.length - 1 && <View style={styles.divider} />}
-//             </React.Fragment>
-//           ))}
+//           {loading ? (
+//              <View style={{ padding: 20 }}>
+//                 <ActivityIndicator size="small" color={colors.primary.main} />
+//              </View>
+//           ) : visitors.length === 0 ? (
+//              <View style={{ padding: 20, alignItems: 'center' }}>
+//                 <Text style={{ color: colors.text.secondary }}>No recent visitors</Text>
+//              </View>
+//           ) : (
+//             visitors.map((visitor, index) => (
+//               <React.Fragment key={visitor.id || index}>
+//                 <VisitorItem visitor={visitor} />
+//                 {index < visitors.length - 1 && <View style={styles.divider} />}
+//               </React.Fragment>
+//             ))
+//           )}
 //         </Card>
 
 //       </ScrollView>
@@ -363,9 +384,10 @@
 
 // export default HomeScreen;
 
+
 /**
  * Resident Home Screen
- * Connected to Backend API
+ * Features: Dashboard, Quick Actions, Visitor Log
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -381,7 +403,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useFocusEffect } from '@react-navigation/native'; // Update on tab switch
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import { colors } from '../../../theme/colors';
 import { typography } from '../../../theme/typography';
@@ -391,11 +413,10 @@ import { borderRadius } from '../../../theme/borderRadius';
 
 import Header from '../../../components/common/Header';
 import Card from '../../../components/common/Card';
-import StatusBadge from '../../../components/common/StatusBadge';
-
 import { useAuth } from '../../../hooks/useAuth';
-import { useNavigation } from '@react-navigation/native';
-import { visitorService } from '../../../services/visitorService'; // Import Service
+
+// Named Import
+import { getResidentVisitors } from '../../../services/visitorService';
 
 const QuickAction = ({ icon, label, color, onPress }) => (
   <TouchableOpacity style={styles.actionItem} onPress={onPress}>
@@ -406,76 +427,97 @@ const QuickAction = ({ icon, label, color, onPress }) => (
   </TouchableOpacity>
 );
 
-const VisitorItem = ({ visitor }) => (
-  <View style={styles.visitorItem}>
-    <View style={styles.visitorIcon}>
-      <Icon 
-        name={visitor.type === 'Delivery' ? 'local-shipping' : visitor.type === 'Cab' ? 'local-taxi' : 'person'} 
-        size={20} 
-        color={colors.text.secondary} 
-      />
+const VisitorItem = ({ visitor }) => {
+  const getIcon = (type) => {
+    const t = type?.toUpperCase();
+    if (t === 'DELIVERY') return 'local-shipping';
+    if (t === 'CAB') return 'local-taxi';
+    if (t === 'SERVICE' || t === 'MAINTENANCE') return 'handyman';
+    return 'person';
+  };
+
+  return (
+    <View style={styles.visitorItem}>
+      <View style={styles.visitorIcon}>
+        <Icon name={getIcon(visitor.type)} size={20} color={colors.text.secondary} />
+      </View>
+      <View style={styles.visitorInfo}>
+        <Text style={styles.visitorName}>{visitor.name}</Text>
+        <Text style={styles.visitorDetails}>{visitor.type}</Text>
+      </View>
+      <View style={styles.visitorMeta}>
+        <Text style={styles.visitorTime}>{visitor.time}</Text>
+        <Text style={styles.visitorDate}>{visitor.date}</Text>
+      </View>
     </View>
-    <View style={styles.visitorInfo}>
-      <Text style={styles.visitorName}>{visitor.name}</Text>
-      <Text style={styles.visitorDetails}>
-        {visitor.company ? `${visitor.type} • ${visitor.company}` : visitor.type}
-      </Text>
-    </View>
-    <View style={styles.visitorMeta}>
-      <Text style={styles.visitorTime}>
-        {/* Simple time formatting */}
-        {new Date(visitor.date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-      </Text>
-      <StatusBadge status={visitor.status || 'pending'} size="small" />
-    </View>
-  </View>
-);
+  );
+};
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { user } = useAuth();
   
-  // State for Real Data
   const [visitors, setVisitors] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null); // To store backend errors
 
-  // Fetch Data Function
   const fetchDashboardData = async () => {
+    setErrorMsg(null); // Reset error
     try {
-      const result = await visitorService.getRecentVisitors();
-      if (result.success) {
-        setVisitors(result.data);
+      const result = await getResidentVisitors();
+      
+      if (result.success && Array.isArray(result.data)) {
+        const mappedData = result.data.map(v => {
+          const entryDate = new Date(v.entry_time);
+          const isToday = new Date().toDateString() === entryDate.toDateString();
+          return {
+            id: v.id,
+            name: v.visitor_name || 'Unknown',
+            type: v.purpose || 'GUEST',
+            time: entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: isToday ? 'Today' : entryDate.toLocaleDateString(),
+            rawDate: entryDate 
+          };
+        });
+        mappedData.sort((a, b) => b.rawDate - a.rawDate);
+        setVisitors(mappedData.slice(0, 5)); 
+      } else {
+        // If success is false, capture the message (e.g., "Flat is not assigned yet")
+        if (result.message) {
+          setErrorMsg(result.message);
+        }
+        setVisitors([]);
       }
     } catch (error) {
       console.log('Error fetching dashboard:', error);
+      setErrorMsg('Network Error');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  // Initial Load
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  // Refresh on Pull
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchDashboardData();
-  };
-
-  // Refresh when screen comes into focus (e.g., after adding a visitor)
   useFocusEffect(
     useCallback(() => {
       fetchDashboardData();
     }, [])
   );
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchDashboardData();
+  };
+
   const handleQuickAction = (route) => {
-    navigation.navigate(route);
+    // Check for specific routes or show placeholders
+    if (['AllowGuest', 'AllowCab', 'AllowDelivery', 'AllowServiceman'].includes(route)) {
+        // navigation.navigate(route); 
+        console.log("Navigating to:", route);
+    } else {
+        console.log("Route not implemented:", route);
+    }
   };
 
   return (
@@ -484,10 +526,9 @@ const HomeScreen = () => {
       
       <Header
         title={`Hi, ${user?.name?.split(' ')[0] || 'Resident'}`}
-        subtitle={`${user?.building || 'Block A'} - ${user?.flat || '101'}`}
+        subtitle={`${user?.Flat?.Block?.name || 'Block'} - ${user?.Flat?.flat_number || 'Flat'}`}
         titleAlign="left"
         showBack={false}
-        onTitlePress={() => navigation.navigate('Profile')} 
         rightIcons={[
           { icon: 'person', onPress: () => navigation.navigate('Profile') },
           { icon: 'notifications-none', onPress: () => navigation.navigate('Notifications') },
@@ -504,7 +545,6 @@ const HomeScreen = () => {
         <TouchableOpacity 
           style={styles.alertBanner} 
           activeOpacity={0.9}
-          onPress={() => navigation.navigate('HomeAlert')}
         >
           <View style={styles.alertContent}>
             <View style={styles.alertIconContainer}>
@@ -549,27 +589,11 @@ const HomeScreen = () => {
           </View>
         </Card>
 
-        {/* Gate Pass Status */}
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('Gatepass')}
-          activeOpacity={1.0} 
-        >
-          <Card style={styles.gatePassCard} variant="elevated">
-            <View style={styles.gatePassContent}>
-              <Icon name="qr-code" size={32} color={colors.primary.main} />
-              <View style={styles.gatePassInfo}>
-                <Text style={styles.gatePassTitle}>My Gate Pass</Text>
-                <Text style={styles.gatePassSubtitle}>Show this at entry for quick access</Text>
-              </View>
-              <Icon name="chevron-right" size={24} color={colors.text.tertiary} />
-            </View>
-          </Card>
-        </TouchableOpacity>
-
         {/* Recent Visitors Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Visitors</Text>
           <TouchableOpacity onPress={() => navigation.navigate('ServicesTab')}>
+             {/* Using ServicesTab as a placeholder for 'All Visitors' list if it exists */}
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
@@ -579,17 +603,20 @@ const HomeScreen = () => {
              <View style={{ padding: 20 }}>
                 <ActivityIndicator size="small" color={colors.primary.main} />
              </View>
-          ) : visitors.length === 0 ? (
-             <View style={{ padding: 20, alignItems: 'center' }}>
-                <Text style={{ color: colors.text.secondary }}>No recent visitors</Text>
-             </View>
-          ) : (
+          ) : visitors.length > 0 ? (
             visitors.map((visitor, index) => (
               <React.Fragment key={visitor.id || index}>
                 <VisitorItem visitor={visitor} />
                 {index < visitors.length - 1 && <View style={styles.divider} />}
               </React.Fragment>
             ))
+          ) : (
+             <View style={{ padding: 20, alignItems: 'center' }}>
+                {/* DISPLAY ERROR MESSAGE IF EXISTS */}
+                <Text style={{ color: errorMsg ? colors.error.main : colors.text.secondary, textAlign: 'center' }}>
+                    {errorMsg || "No recent visitors"}
+                </Text>
+             </View>
           )}
         </Card>
 
@@ -666,29 +693,6 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
   },
-  gatePassCard: {
-    marginBottom: spacing.lg,
-    backgroundColor: colors.primary.background,
-    borderColor: colors.primary.main,
-    borderWidth: 1,
-  },
-  gatePassContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  gatePassInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  gatePassTitle: {
-    ...typography.textStyles.bodyLarge,
-    fontWeight: '600',
-    color: colors.primary.dark,
-  },
-  gatePassSubtitle: {
-    ...typography.textStyles.caption,
-    color: colors.text.secondary,
-  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -736,8 +740,13 @@ const styles = StyleSheet.create({
   },
   visitorTime: {
     ...typography.textStyles.caption,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  visitorDate: {
+    ...typography.textStyles.caption,
     color: colors.text.tertiary,
-    marginBottom: 4,
+    fontSize: 10,
   },
   divider: {
     height: 1,

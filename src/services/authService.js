@@ -218,6 +218,24 @@ export const logout = async () => {
   return { success: true };
 };
 
+export const changePassword = async (currentPassword, newPassword) => {
+  try {
+    // Backend Route: PUT /api/users/reset-password
+    const response = await apiClient.put('/users/reset-password', {
+      currentPassword,
+      newPassword
+    });
+
+    if (response.success) {
+      return { success: true, message: 'Password changed successfully' };
+    }
+    // Handle error messages from backend
+    return { success: false, message: response.message || 'Failed to change password' };
+  } catch (error) {
+    return { success: false, message: error.message || 'Network error' };
+  }
+};
+
 export const sendOTP = async (phone) => ({ success: true, message: 'OTP Sent' });
 export const verifyOTP = async (phone, otp) => ({ success: true, message: 'Verified' });
 
@@ -226,6 +244,7 @@ export const authService = {
   sendOTP,
   verifyOTP,
   logout,
+  changePassword,
 };
 
 export default authService;

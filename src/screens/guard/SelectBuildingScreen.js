@@ -1,15 +1,17 @@
-/**
- * Select Building Screen
- * * Step 1 of Manual Lookup
- */
+// // /**
+// //  * Select Building Screen
+// //  * * Step 1 of Manual Lookup
+// //  */
 
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -20,23 +22,43 @@ import { spacing } from '../../theme/spacing';
 import { borderRadius } from '../../theme/borderRadius';
 import Header from '../../components/common/Header';
 
-const BUILDINGS = [
-  { id: 'A', name: 'Tower A', occupancy: '90%' },
-  { id: 'B', name: 'Tower B', occupancy: '85%' },
-  { id: 'C', name: 'Tower C', occupancy: '60%' },
-  { id: 'D', name: 'Tower D', occupancy: '40%' },
-];
+// Service
+import { getSocietyBlocks } from '../../services/visitorService';
 
 const SelectBuildingScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  // Pass forward any previous data (e.g., visitor name)
-  const entryData = route.params || {};
+  const { visitorName, visitorPhone, vehicleNo, visitorType } = route.params;
+  
+  const [blocks, setBlocks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSelect = (building) => {
+  useEffect(() => {
+    loadBlocks();
+  }, []);
+
+  const loadBlocks = async () => {
+    try {
+      const result = await getSocietyBlocks();
+      if (result.success) {
+        setBlocks(result.data);
+      } else {
+        console.log("Block Fetch Error:", result.message);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelect = (block) => {
     navigation.navigate('SelectFlat', {
-      ...entryData,
-      building: building.name,
-      buildingId: building.id,
+      visitorName,
+      visitorPhone,
+      vehicleNo,
+      visitorType,
+      blockId: block.id,
+      blockName: block.name
     });
   };
 
@@ -46,27 +68,37 @@ const SelectBuildingScreen = ({ navigation, route }) => {
       
       <Text style={styles.helperText}>Which building is the visitor going to?</Text>
 
-      <FlatList
-        data={BUILDINGS}
-        keyExtractor={item => item.id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.card} 
-            onPress={() => handleSelect(item)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.iconBox}>
-              <Icon name="apartment" size={32} color={colors.primary.main} />
-            </View>
-            <View style={styles.info}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.sub}>{item.occupancy} Occupied</Text>
-            </View>
-            <Icon name="chevron-right" size={24} color={colors.text.tertiary} />
-          </TouchableOpacity>
-        )}
-      />
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary.main} />
+        </View>
+      ) : (
+        <FlatList
+          data={blocks}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
+          ListEmptyComponent={
+            <Text style={styles.empty}>No buildings found</Text>
+          }
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.card} 
+              onPress={() => handleSelect(item)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.iconBox}>
+                <Icon name="apartment" size={32} color={colors.primary.main} />
+              </View>
+              <View style={styles.info}>
+                <Text style={styles.name}>{item.name}</Text>
+                {/* Optional: Add occupancy or other info if available in backend */}
+                <Text style={styles.sub}>Select to view flats</Text>
+              </View>
+              <Icon name="chevron-right" size={24} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -75,6 +107,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.secondary,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   helperText: {
     ...typography.textStyles.bodyMedium,
@@ -92,6 +129,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
     marginBottom: spacing.md,
+    // Shadows
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -117,6 +155,13 @@ const styles = StyleSheet.create({
   sub: {
     ...typography.textStyles.caption,
     color: colors.text.secondary,
+    marginTop: 2,
+  },
+  empty: {
+    textAlign: 'center',
+    marginTop: 40,
+    ...typography.textStyles.bodyMedium,
+    color: colors.text.tertiary,
   },
 });
 

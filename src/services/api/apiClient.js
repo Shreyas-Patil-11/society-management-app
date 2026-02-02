@@ -1,17 +1,13 @@
-/**
- * API Client
- * 
- * Centralized HTTP client for making API requests
- * Currently returns mock data, ready for backend integration
- */
 
+
+// /**
+//  * API Client
+//  * src/services/api/apiClient.js
+//  */
 // import { API_CONFIG } from '../../config/appConfig';
 // import { storage } from '../../utils/storage';
 // import { STORAGE_KEYS } from '../../utils/constants';
 
-// /**
-//  * HTTP Methods
-//  */
 // export const HTTP_METHODS = {
 //   GET: 'GET',
 //   POST: 'POST',
@@ -20,214 +16,62 @@
 //   DELETE: 'DELETE',
 // };
 
-// /**
-//  * API Response Status
-//  */
-// export const API_STATUS = {
-//   SUCCESS: 'success',
-//   ERROR: 'error',
-// };
-
-// /**
-//  * Create standard response object
-//  */
-// const createResponse = (success, data = null, message = '', error = null) => ({
-//   success,
-//   status: success ? API_STATUS.SUCCESS : API_STATUS.ERROR,
-//   data,
-//   message,
-//   error,
-//   timestamp: new Date().toISOString(),
-// });
-
-// /**
-//  * Get authorization headers
-//  */
-// const getAuthHeaders = async () => {
-//   const token = await storage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-//   return token ? { Authorization: `Bearer ${token}` } : {};
-// };
-
-// /**
-//  * Handle API errors
-//  */
+// // Helper to handle errors
 // const handleApiError = (error) => {
-//   console.error('API Error:', error);
-
+//   console.error('[API Error]', error);
 //   if (error.response) {
-//     // Server responded with error
-//     const { status, data } = error.response;
-    
-//     switch (status) {
-//       case 400:
-//         return createResponse(false, null, data?.message || 'Bad Request', 'VALIDATION_ERROR');
-//       case 401:
-//         return createResponse(false, null, 'Session expired. Please login again.', 'UNAUTHORIZED');
-//       case 403:
-//         return createResponse(false, null, 'You do not have permission.', 'FORBIDDEN');
-//       case 404:
-//         return createResponse(false, null, 'Resource not found.', 'NOT_FOUND');
-//       case 500:
-//         return createResponse(false, null, 'Server error. Please try again later.', 'SERVER_ERROR');
-//       default:
-//         return createResponse(false, null, data?.message || 'Something went wrong.', 'UNKNOWN_ERROR');
-//     }
+//     return { success: false, status: error.response.status, message: error.response.data?.message || 'Server Error' };
 //   }
-
-//   if (error.request) {
-//     // Network error
-//     return createResponse(false, null, 'Network error. Please check your connection.', 'NETWORK_ERROR');
-//   }
-
-//   // Other errors
-//   return createResponse(false, null, error.message || 'An unexpected error occurred.', 'UNKNOWN_ERROR');
+//   return { success: false, message: error.message || 'Network Error' };
 // };
 
-// /**
-//  * Make API request
-//  * 
-//  * @param {string} url - API endpoint URL
-//  * @param {object} options - Request options
-//  * @returns {Promise<object>} - API response
-//  */
-// export const apiRequest = async (url, options = {}) => {
-//   const {
-//     method = HTTP_METHODS.GET,
-//     data = null,
-//     headers = {},
-//     timeout = API_CONFIG.TIMEOUT,
-//     requiresAuth = true,
-//   } = options;
+// export const apiRequest = async (endpoint, options = {}) => {
+//   const { method = HTTP_METHODS.GET, data = null, requiresAuth = true } = options;
+
+//   // 1. FIX: Construct Full URL (Solves "Network request failed")
+//   const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, ''); // Remove trailing slash
+//   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+//   const url = `${baseUrl}${path}`;
 
 //   try {
-//     // TODO: Uncomment when backend is ready
-//     /*
-//     const authHeaders = requiresAuth ? await getAuthHeaders() : {};
-    
-//     const config = {
-//       method,
-//       headers: {
-//         ...API_CONFIG.DEFAULT_HEADERS,
-//         ...authHeaders,
-//         ...headers,
-//       },
-//       timeout,
+//     // 2. Get Token
+//     const headers = {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
 //     };
 
-//     if (data && (method === HTTP_METHODS.POST || method === HTTP_METHODS.PUT || method === HTTP_METHODS.PATCH)) {
-//       config.body = JSON.stringify(data);
+//     if (requiresAuth) {
+//       const token = await storage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+//       if (token) headers['Authorization'] = `Bearer ${token}`;
 //     }
 
+//     // 3. Configure Request
+//     const config = { method, headers };
+//     if (data) config.body = JSON.stringify(data);
+
+//     console.log(`[API CLIENT] ${method}: ${url}`);
+
+//     // 4. Execute Fetch
 //     const response = await fetch(url, config);
-//     const responseData = await response.json();
+//     const responseData = await response.json().catch(() => ({})); // Handle empty/text responses
 
 //     if (!response.ok) {
 //       throw { response: { status: response.status, data: responseData } };
 //     }
 
-//     return createResponse(true, responseData.data, responseData.message || 'Success');
-//     */
+//     return { success: true, data: responseData };
 
-//     // For now, simulate network delay and return mock success
-//     await new Promise(resolve => setTimeout(resolve, 500));
-    
-//     console.log(`[API Mock] ${method} ${url}`, data);
-    
-//     return createResponse(true, null, 'Mock API call successful');
 //   } catch (error) {
 //     return handleApiError(error);
 //   }
 // };
 
-// /**
-//  * GET request
-//  */
-// export const get = async (url, options = {}) => {
-//   return apiRequest(url, { ...options, method: HTTP_METHODS.GET });
-// };
-
-// /**
-//  * POST request
-//  */
-// export const post = async (url, data, options = {}) => {
-//   return apiRequest(url, { ...options, method: HTTP_METHODS.POST, data });
-// };
-
-// /**
-//  * PUT request
-//  */
-// export const put = async (url, data, options = {}) => {
-//   return apiRequest(url, { ...options, method: HTTP_METHODS.PUT, data });
-// };
-
-// /**
-//  * PATCH request
-//  */
-// export const patch = async (url, data, options = {}) => {
-//   return apiRequest(url, { ...options, method: HTTP_METHODS.PATCH, data });
-// };
-
-// /**
-//  * DELETE request
-//  */
-// export const del = async (url, options = {}) => {
-//   return apiRequest(url, { ...options, method: HTTP_METHODS.DELETE });
-// };
-
-// /**
-//  * Upload file
-//  */
-// export const uploadFile = async (url, file, options = {}) => {
-//   try {
-//     // TODO: Implement file upload when backend is ready
-//     /*
-//     const formData = new FormData();
-//     formData.append('file', {
-//       uri: file.uri,
-//       type: file.type,
-//       name: file.name,
-//     });
-
-//     const authHeaders = await getAuthHeaders();
-    
-//     const response = await fetch(url, {
-//       method: HTTP_METHODS.POST,
-//       headers: {
-//         ...authHeaders,
-//         'Content-Type': 'multipart/form-data',
-//         ...options.headers,
-//       },
-//       body: formData,
-//     });
-
-//     const responseData = await response.json();
-    
-//     if (!response.ok) {
-//       throw { response: { status: response.status, data: responseData } };
-//     }
-
-//     return createResponse(true, responseData.data, 'File uploaded successfully');
-//     */
-
-//     await new Promise(resolve => setTimeout(resolve, 1000));
-//     console.log('[API Mock] File upload:', file);
-    
-//     return createResponse(true, { url: 'https://example.com/uploaded-file.jpg' }, 'File uploaded successfully');
-//   } catch (error) {
-//     return handleApiError(error);
-//   }
-// };
-
+// // Convenience methods
 // export const apiClient = {
-//   request: apiRequest,
-//   get,
-//   post,
-//   put,
-//   patch,
-//   delete: del,
-//   uploadFile,
-//   HTTP_METHODS,
-//   API_STATUS,
+//   get: (url) => apiRequest(url, { method: HTTP_METHODS.GET }),
+//   post: (url, data) => apiRequest(url, { method: HTTP_METHODS.POST, data }),
+//   put: (url, data) => apiRequest(url, { method: HTTP_METHODS.PUT, data }),
+//   del: (url) => apiRequest(url, { method: HTTP_METHODS.DELETE }),
 // };
 
 // export default apiClient;
@@ -235,6 +79,7 @@
 /**
  * API Client
  * src/services/api/apiClient.js
+ * FIXED: Handles both Full URLs (from endpoints.js) and Relative Paths (from new services)
  */
 
 import { API_CONFIG } from '../../config/appConfig';
@@ -249,117 +94,69 @@ export const HTTP_METHODS = {
   DELETE: 'DELETE',
 };
 
-export const API_STATUS = {
-  SUCCESS: 'success',
-  ERROR: 'error',
-};
-
-const createResponse = (success, data = null, message = '', error = null) => ({
-  success,
-  status: success ? API_STATUS.SUCCESS : API_STATUS.ERROR,
-  data,
-  message,
-  error,
-  timestamp: new Date().toISOString(),
-});
-
-const getAuthHeaders = async () => {
-  const token = await storage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
+// Helper to handle errors
 const handleApiError = (error) => {
-  console.error('API Error:', error);
-
-  // Handle Abort/Timeout errors explicitly
-  if (error.name === 'AbortError' || error.message === 'Aborted') {
-    return createResponse(false, null, 'Request timed out. Server unreachable.', 'TIMEOUT_ERROR');
-  }
-
-  // Server responded with error status
+  console.error('[API Error]', error);
   if (error.response) {
-    const { status, data } = error.response;
-    switch (status) {
-      case 400: return createResponse(false, null, data?.message || 'Bad Request', 'VALIDATION_ERROR');
-      case 401: return createResponse(false, null, 'Session expired.', 'UNAUTHORIZED');
-      case 403: return createResponse(false, null, 'Permission denied.', 'FORBIDDEN');
-      case 404: return createResponse(false, null, 'Resource not found.', 'NOT_FOUND');
-      case 500: return createResponse(false, null, 'Server error.', 'SERVER_ERROR');
-      default: return createResponse(false, null, data?.message || 'Unknown error.', 'UNKNOWN_ERROR');
-    }
+    return { success: false, status: error.response.status, message: error.response.data?.message || 'Server Error' };
   }
-
-  // Network or other errors
-  return createResponse(false, null, error.message || 'Network error.', 'NETWORK_ERROR');
+  return { success: false, message: error.message || 'Network Error' };
 };
 
-export const apiRequest = async (url, options = {}) => {
-  const {
-    method = HTTP_METHODS.GET,
-    data = null,
-    headers = {},
-    timeout = 50000, // Default 10 seconds timeout
-    requiresAuth = true,
-  } = options;
+export const apiRequest = async (endpoint, options = {}) => {
+  const { method = HTTP_METHODS.GET, data = null, requiresAuth = true } = options;
 
-  // AbortController for Timeout Handling
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  let url;
+
+  // FIX: Check if endpoint is already a full URL
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    url = endpoint;
+  } else {
+    // If relative path, prepend Base URL
+    const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, ''); 
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    url = `${baseUrl}${path}`;
+  }
 
   try {
-    const authHeaders = requiresAuth ? await getAuthHeaders() : {};
-    
-    const config = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...authHeaders,
-        ...headers,
-      },
-      signal: controller.signal, // Attach signal
+    // 2. Get Token
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
     };
 
-    if (data && [HTTP_METHODS.POST, HTTP_METHODS.PUT, HTTP_METHODS.PATCH].includes(method)) {
-      config.body = JSON.stringify(data);
+    if (requiresAuth) {
+      const token = await storage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      if (token) headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // EXECUTE FETCH
-    console.log(`[API CLIENT] Sending ${method} request to: ${url}`);
-    console.log('[API CLIENT] Data:', data);
-    const response = await fetch(url, config);
-    clearTimeout(timeoutId); // Clear timeout on response
+    // 3. Configure Request
+    const config = { method, headers };
+    if (data) config.body = JSON.stringify(data);
 
-    // Parse JSON
-    const responseData = await response.json();
+    console.log(`[API CLIENT] ${method}: ${url}`);
+
+    // 4. Execute Fetch
+    const response = await fetch(url, config);
+    const responseData = await response.json().catch(() => ({})); 
 
     if (!response.ok) {
       throw { response: { status: response.status, data: responseData } };
     }
 
-    return createResponse(true, responseData, 'Success');
+    return { success: true, data: responseData };
 
   } catch (error) {
-    clearTimeout(timeoutId); // Ensure timeout is cleared
     return handleApiError(error);
   }
 };
 
-export const get = (url, options = {}) => apiRequest(url, { ...options, method: HTTP_METHODS.GET });
-export const post = (url, data, options = {}) => apiRequest(url, { ...options, method: HTTP_METHODS.POST, data });
-export const put = (url, data, options = {}) => apiRequest(url, { ...options, method: HTTP_METHODS.PUT, data });
-export const patch = (url, data, options = {}) => apiRequest(url, { ...options, method: HTTP_METHODS.PATCH, data });
-export const del = (url, options = {}) => apiRequest(url, { ...options, method: HTTP_METHODS.DELETE });
-
+// Convenience methods
 export const apiClient = {
-  request: apiRequest,
-  get,
-  post,
-  put,
-  patch,
-  delete: del,
-  HTTP_METHODS,
-  API_STATUS,
+  get: (url) => apiRequest(url, { method: HTTP_METHODS.GET }),
+  post: (url, data) => apiRequest(url, { method: HTTP_METHODS.POST, data }),
+  put: (url, data) => apiRequest(url, { method: HTTP_METHODS.PUT, data }),
+  del: (url) => apiRequest(url, { method: HTTP_METHODS.DELETE }),
 };
 
 export default apiClient;

@@ -1,15 +1,5 @@
 
-
-/**
- * Guard Visitors Screen
- * src/screens/guard/GuardVisitorsScreen.js
- */
-/**
- * Guard Visitors Screen
- * src/screens/guard/GuardVisitorsScreen.js
- */
-
-// import React, { useState, useEffect, useCallback } from 'react';
+// import React, { useState, useCallback } from 'react';
 // import {
 //   View,
 //   Text,
@@ -18,100 +8,76 @@
 //   TouchableOpacity,
 //   Alert,
 //   RefreshControl,
-//   ActivityIndicator
+//   ActivityIndicator,
+//   TextInput,
 // } from 'react-native';
 // import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import { useFocusEffect } from '@react-navigation/native'; // Auto-refresh when coming back
+// import { useFocusEffect } from '@react-navigation/native';
+// import Icon from 'react-native-vector-icons/MaterialIcons';
 
+// // Theme Imports
 // import { colors } from '../../theme/colors';
 // import { typography } from '../../theme/typography';
 // import { spacing } from '../../theme/spacing';
 // import { borderRadius } from '../../theme/borderRadius';
+
+// // Component Imports
 // import Header from '../../components/common/Header';
 // import StatusBadge from '../../components/common/StatusBadge';
 // import { useToast } from '../../hooks/useToast';
 
-// // Service
-// import { visitorService } from '../../services/visitorService';
-
-// // --- DATA MAPPER: Backend -> UI ---
-// const mapBackendToUI = (visitor) => {
-//   // Backend returns: { id, visitor_name, entry_time, exit_time, Flat: { flat_number, floor_number, block_id } }
-  
-//   // Format Time (e.g., "10:30 AM")
-//   const date = new Date(visitor.entry_time);
-//   const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  
-//   // Format Destination
-//   let dest = 'Unknown';
-//   if (visitor.Flat) {
-//     // Assuming Flat has structure or just flat_number
-//     dest = visitor.Flat.flat_number ? `Flat ${visitor.Flat.flat_number}` : `Flat ID: ${visitor.flat_id}`;
-//   }
-
-//   return {
-//     id: visitor.id,
-//     name: visitor.visitor_name || 'Unknown',
-//     type: 'Visitor', // Backend model doesn't store type yet, defaulting to Visitor
-//     dest: dest,
-//     inTime: timeString,
-//     status: visitor.exit_time ? 'left' : 'inside', // Logic: If exit_time exists, they left
-//     rawDate: date, // For sorting
-//   };
-// };
-
-// const VisitorLogItem = ({ item, onCheckout }) => (
-//   <View style={styles.card}>
-//     <View style={styles.row}>
-//       <View style={styles.info}>
-//         <Text style={styles.name}>{item.name}</Text>
-//         <Text style={styles.details}>{item.type} • {item.dest}</Text>
-//         <Text style={styles.time}>In: {item.inTime}</Text>
-//       </View>
-//       <View style={styles.actions}>
-//         {item.status === 'inside' ? (
-//           <TouchableOpacity 
-//             style={styles.checkoutBtn} 
-//             onPress={() => onCheckout(item)}
-//           >
-//             <Text style={styles.checkoutText}>EXIT</Text>
-//           </TouchableOpacity>
-//         ) : (
-//           <StatusBadge status="rejected" label="LEFT" size="small" />
-//         )}
-//       </View>
-//     </View>
-//   </View>
-// );
+// // Service Import (Using Named Imports to fix "undefined" error)
+// import { getSocietyVisitors, markVisitorExit } from '../../services/visitorService';
 
 // const GuardVisitorsScreen = ({ navigation }) => {
+//   // 1. Hooks MUST be at the top level
 //   const insets = useSafeAreaInsets();
 //   const { showSuccess, showError } = useToast();
   
-//   const [activeTab, setActiveTab] = useState('inside'); // inside | history
+//   // 2. State definitions
+//   const [activeTab, setActiveTab] = useState('inside');
 //   const [listData, setListData] = useState([]);
 //   const [isLoading, setIsLoading] = useState(true);
 //   const [refreshing, setRefreshing] = useState(false);
+//   const [searchQuery, setSearchQuery] = useState('');
 
-//   // Fetch Data Function
+//   // 3. Helper Functions (Defined before they are used)
+//   const mapBackendToUI = (item) => {
+//     return {
+//       id: item.id,
+//       name: item.visitor_name,
+//       type: item.purpose || 'Visitor',
+//       dest: item.Flat 
+//         ? `${item.Flat.Block?.name || 'Block'}-${item.Flat.flat_number}` 
+//         : 'Unknown',
+//       inTime: new Date(item.entry_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+//       status: item.exit_time ? 'left' : 'inside',
+//       rawDate: new Date(item.entry_time),
+//     };
+//   };
+
 //   const fetchVisitors = async () => {
 //     try {
-//       const result = await visitorService.getSocietyVisitors();
-//       if (result.success) {
+//       // Call the named import function
+//       const result = await getSocietyVisitors();
+      
+//       if (result.success && Array.isArray(result.data)) {
 //         const mappedData = result.data.map(mapBackendToUI);
-//         // Sort by Newest First
+//         // Sort by latest entry
 //         mappedData.sort((a, b) => b.rawDate - a.rawDate);
 //         setListData(mappedData);
+//       } else {
+//         console.log("Fetch failed or empty:", result.message);
 //       }
 //     } catch (error) {
-//       console.error(error);
+//       console.error("Screen Fetch Error:", error);
 //     } finally {
 //       setIsLoading(false);
 //       setRefreshing(false);
 //     }
 //   };
 
-//   // Initial Load + Focus Refresh
+//   // 4. Effects
 //   useFocusEffect(
 //     useCallback(() => {
 //       fetchVisitors();
@@ -132,19 +98,12 @@
 //         { 
 //           text: 'YES, EXIT', 
 //           onPress: async () => {
-//             // Optimistic Update (Update UI immediately)
-//             setListData(prev => prev.map(item => 
-//               item.id === visitor.id ? { ...item, status: 'left' } : item
-//             ));
-            
-//             // Call Backend
-//             const result = await visitorService.markVisitorExit(visitor.id);
+//             const result = await markVisitorExit(visitor.id);
 //             if (result.success) {
 //               showSuccess(`${visitor.name} marked as exited`);
-//               fetchVisitors(); // Refresh to be sure
+//               fetchVisitors(); 
 //             } else {
 //               showError('Failed to mark exit');
-//               fetchVisitors(); // Revert if failed
 //             }
 //           } 
 //         }
@@ -152,15 +111,50 @@
 //     );
 //   };
 
-//   const filteredData = activeTab === 'inside' 
-//     ? listData.filter(v => v.status === 'inside')
-//     : listData.filter(v => v.status === 'left');
+//   const getFilteredData = () => {
+//     let data = listData;
+    
+//     // Tab Filter
+//     data = activeTab === 'inside' 
+//       ? data.filter(v => v.status === 'inside')
+//       : data.filter(v => v.status === 'left');
 
+//     // Search Filter
+//     if (searchQuery) {
+//       const query = searchQuery.toLowerCase();
+//       data = data.filter(v => 
+//         v.name.toLowerCase().includes(query) || 
+//         v.dest.toLowerCase().includes(query)
+//       );
+//     }
+//     return data;
+//   };
+
+//   const filteredData = getFilteredData();
+
+//   // 5. Render
 //   return (
 //     <View style={styles.container}>
 //       <Header title="Visitor Log" showBack={false} />
       
-//       {/* Tabs */}
+//       <View style={styles.searchContainer}>
+//         <View style={styles.searchWrapper}>
+//           <Icon name="search" size={20} color={colors.text.tertiary} style={{ marginRight: 8 }} />
+//           <TextInput
+//             style={styles.searchInput}
+//             placeholder="Search name or flat..."
+//             placeholderTextColor={colors.text.tertiary}
+//             value={searchQuery}
+//             onChangeText={setSearchQuery}
+//           />
+//           {searchQuery.length > 0 && (
+//             <TouchableOpacity onPress={() => setSearchQuery('')}>
+//               <Icon name="close" size={20} color={colors.text.tertiary} />
+//             </TouchableOpacity>
+//           )}
+//         </View>
+//       </View>
+
 //       <View style={styles.tabs}>
 //         <TouchableOpacity 
 //           style={[styles.tab, activeTab === 'inside' && styles.activeTab]}
@@ -191,11 +185,33 @@
 //           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
 //           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
 //           renderItem={({ item }) => (
-//             <VisitorLogItem item={item} onCheckout={handleCheckout} />
+//             <View style={styles.card}>
+//               <View style={styles.row}>
+//                 <View style={styles.info}>
+//                   <Text style={styles.name}>{item.name}</Text>
+//                   <Text style={styles.details}>{item.type} • {item.dest}</Text>
+//                   <Text style={styles.time}>In: {item.inTime}</Text>
+//                 </View>
+//                 <View style={styles.actions}>
+//                   {item.status === 'inside' ? (
+//                     <TouchableOpacity 
+//                       style={styles.checkoutBtn} 
+//                       onPress={() => handleCheckout(item)}
+//                     >
+//                       <Text style={styles.checkoutText}>EXIT</Text>
+//                     </TouchableOpacity>
+//                   ) : (
+//                     <StatusBadge status="rejected" label="LEFT" size="small" />
+//                   )}
+//                 </View>
+//               </View>
+//             </View>
 //           )}
 //           ListEmptyComponent={
 //             <View style={styles.empty}>
-//               <Text style={styles.emptyText}>No visitors found</Text>
+//               <Text style={styles.emptyText}>
+//                 {listData.length === 0 ? "No visitors recorded" : "No results found"}
+//               </Text>
 //             </View>
 //           }
 //         />
@@ -207,6 +223,18 @@
 // const styles = StyleSheet.create({
 //   container: { flex: 1, backgroundColor: colors.background.secondary },
 //   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+//   searchContainer: { padding: spacing.md, paddingBottom: 0 },
+//   searchWrapper: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     backgroundColor: colors.white,
+//     borderRadius: borderRadius.md,
+//     paddingHorizontal: spacing.sm,
+//     height: 44,
+//     borderWidth: 1,
+//     borderColor: colors.border.light,
+//   },
+//   searchInput: { flex: 1, height: '100%', color: colors.text.primary },
 //   tabs: {
 //     flexDirection: 'row',
 //     backgroundColor: colors.white,
@@ -251,13 +279,13 @@
 
 // export default GuardVisitorsScreen;
 
+
 /**
  * Guard Visitors Screen
  * src/screens/guard/GuardVisitorsScreen.js
- * Added: Search and Filter Functionality
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -282,28 +310,26 @@ import Header from '../../components/common/Header';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../hooks/useToast';
 
-// Service
-import { visitorService } from '../../services/visitorService';
+// FIX 1: Correct Import (Default Import)
+import visitorService from '../../services/visitorService';
 
-// --- DATA MAPPER: Backend -> UI ---
+// --- DATA MAPPER ---
 const mapBackendToUI = (visitor) => {
   const date = new Date(visitor.entry_time);
   const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   
   let dest = 'Unknown';
   if (visitor.Flat) {
-    const flatNo = visitor.Flat.flat_number;
-    if (visitor.Flat.Block && visitor.Flat.Block.name) {
-      dest = `${visitor.Flat.Block.name}-${flatNo}`;
-    } else {
-      dest = `Flat ${flatNo}`;
-    }
+    const flatNo = visitor.Flat.flat_number || 'N/A';
+    // Safety check for Block
+    const blockName = visitor.Flat.Block ? visitor.Flat.Block.name : '';
+    dest = blockName ? `${blockName}-${flatNo}` : `Flat ${flatNo}`;
   }
 
   return {
     id: visitor.id,
     name: visitor.visitor_name || 'Unknown',
-    type: 'Visitor',
+    type: visitor.purpose || 'Visitor',
     dest: dest,
     inTime: timeString,
     status: visitor.exit_time ? 'left' : 'inside',
@@ -311,35 +337,11 @@ const mapBackendToUI = (visitor) => {
   };
 };
 
-const VisitorLogItem = ({ item, onCheckout }) => (
-  <View style={styles.card}>
-    <View style={styles.row}>
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.details}>{item.type} • {item.dest}</Text>
-        <Text style={styles.time}>In: {item.inTime} • {item.rawDate.toLocaleDateString()}</Text>
-      </View>
-      <View style={styles.actions}>
-        {item.status === 'inside' ? (
-          <TouchableOpacity 
-            style={styles.checkoutBtn} 
-            onPress={() => onCheckout(item)}
-          >
-            <Text style={styles.checkoutText}>EXIT</Text>
-          </TouchableOpacity>
-        ) : (
-          <StatusBadge status="left" label="LEFT" size="small" />
-        )}
-      </View>
-    </View>
-  </View>
-);
-
 const GuardVisitorsScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useToast();
   
-  const [activeTab, setActiveTab] = useState('inside'); // inside | history
+  const [activeTab, setActiveTab] = useState('inside'); 
   const [listData, setListData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -347,9 +349,8 @@ const GuardVisitorsScreen = ({ navigation }) => {
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [dateFilter, setDateFilter] = useState('all'); // all, today, yesterday, week
+  const [dateFilter, setDateFilter] = useState('all'); 
 
-  // Fetch Data Function
   const fetchVisitors = async () => {
     try {
       const result = await visitorService.getSocietyVisitors();
@@ -386,6 +387,7 @@ const GuardVisitorsScreen = ({ navigation }) => {
         { 
           text: 'YES, EXIT', 
           onPress: async () => {
+            // Optimistic Update
             setListData(prev => prev.map(item => 
               item.id === visitor.id ? { ...item, status: 'left' } : item
             ));
@@ -396,7 +398,7 @@ const GuardVisitorsScreen = ({ navigation }) => {
               fetchVisitors();
             } else {
               showError('Failed to mark exit');
-              fetchVisitors();
+              fetchVisitors(); // Revert
             }
           } 
         }
@@ -404,7 +406,6 @@ const GuardVisitorsScreen = ({ navigation }) => {
     );
   };
 
-  // --- FILTERING LOGIC ---
   const getFilteredData = () => {
     let data = listData;
 
@@ -413,7 +414,7 @@ const GuardVisitorsScreen = ({ navigation }) => {
       ? data.filter(v => v.status === 'inside')
       : data.filter(v => v.status === 'left');
 
-    // 2. Search Filter (Name or Flat)
+    // 2. Search Filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       data = data.filter(v => 
@@ -422,7 +423,7 @@ const GuardVisitorsScreen = ({ navigation }) => {
       );
     }
 
-    // 3. Date Filter
+    // 3. Date Filter (KEEPING THIS LOGIC)
     const today = new Date();
     today.setHours(0,0,0,0);
     
@@ -447,7 +448,12 @@ const GuardVisitorsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Visitor Log" showBack={false} />
+      {/* FIX 2: Added Back Button logic to navigate to GuardHome */}
+      <Header 
+        title="Visitor Log" 
+        showBack={true} 
+        onBackPress={() => navigation.navigate('GuardHome')}
+      />
       
       {/* Search & Filter Bar */}
       <View style={styles.searchContainer}>
@@ -510,7 +516,27 @@ const GuardVisitorsScreen = ({ navigation }) => {
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           renderItem={({ item }) => (
-            <VisitorLogItem item={item} onCheckout={handleCheckout} />
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <View style={styles.info}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.details}>{item.type} • {item.dest}</Text>
+                  <Text style={styles.time}>In: {item.inTime} • {item.rawDate.toLocaleDateString()}</Text>
+                </View>
+                <View style={styles.actions}>
+                  {item.status === 'inside' ? (
+                    <TouchableOpacity 
+                      style={styles.checkoutBtn} 
+                      onPress={() => handleCheckout(item)}
+                    >
+                      <Text style={styles.checkoutText}>EXIT</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <StatusBadge status="rejected" label="LEFT" size="small" />
+                  )}
+                </View>
+              </View>
+            </View>
           )}
           ListEmptyComponent={
             <View style={styles.empty}>
@@ -535,37 +561,24 @@ const GuardVisitorsScreen = ({ navigation }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Filter by Date</Text>
             
-            <TouchableOpacity 
-              style={[styles.filterOption, dateFilter === 'all' && styles.filterOptionActive]}
-              onPress={() => { setDateFilter('all'); setShowFilterModal(false); }}
-            >
-              <Text style={[styles.filterText, dateFilter === 'all' && styles.filterTextActive]}>All Time</Text>
-              {dateFilter === 'all' && <Icon name="check" size={20} color={colors.primary.main} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.filterOption, dateFilter === 'today' && styles.filterOptionActive]}
-              onPress={() => { setDateFilter('today'); setShowFilterModal(false); }}
-            >
-              <Text style={[styles.filterText, dateFilter === 'today' && styles.filterTextActive]}>Today</Text>
-              {dateFilter === 'today' && <Icon name="check" size={20} color={colors.primary.main} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.filterOption, dateFilter === 'yesterday' && styles.filterOptionActive]}
-              onPress={() => { setDateFilter('yesterday'); setShowFilterModal(false); }}
-            >
-              <Text style={[styles.filterText, dateFilter === 'yesterday' && styles.filterTextActive]}>Yesterday</Text>
-              {dateFilter === 'yesterday' && <Icon name="check" size={20} color={colors.primary.main} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.filterOption, dateFilter === 'week' && styles.filterOptionActive]}
-              onPress={() => { setDateFilter('week'); setShowFilterModal(false); }}
-            >
-              <Text style={[styles.filterText, dateFilter === 'week' && styles.filterTextActive]}>Last 7 Days</Text>
-              {dateFilter === 'week' && <Icon name="check" size={20} color={colors.primary.main} />}
-            </TouchableOpacity>
+            {/* Filter Options */}
+            {[
+              { id: 'all', label: 'All Time' },
+              { id: 'today', label: 'Today' },
+              { id: 'yesterday', label: 'Yesterday' },
+              { id: 'week', label: 'Last 7 Days' },
+            ].map((option) => (
+              <TouchableOpacity 
+                key={option.id}
+                style={[styles.filterOption, dateFilter === option.id && styles.filterOptionActive]}
+                onPress={() => { setDateFilter(option.id); setShowFilterModal(false); }}
+              >
+                <Text style={[styles.filterText, dateFilter === option.id && styles.filterTextActive]}>
+                  {option.label}
+                </Text>
+                {dateFilter === option.id && <Icon name="check" size={20} color={colors.primary.main} />}
+              </TouchableOpacity>
+            ))}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -577,57 +590,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background.secondary },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
-  // Search & Filter Styles
-  searchContainer: {
-    flexDirection: 'row',
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
+  // Search
+  searchContainer: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
   searchWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.sm,
-    height: 44,
-    borderWidth: 1,
-    borderColor: colors.border.light,
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.white, borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm, height: 44,
+    borderWidth: 1, borderColor: colors.border.light,
   },
-  searchIcon: {
-    marginRight: spacing.xs,
-  },
-  searchInput: {
-    flex: 1,
-    height: '100%',
-    color: colors.text.primary,
-    fontSize: 14,
-  },
+  searchIcon: { marginRight: spacing.xs },
+  searchInput: { flex: 1, height: '100%', color: colors.text.primary, fontSize: 14 },
   filterBtn: {
-    width: 44,
-    height: 44,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border.light,
+    width: 44, height: 44, backgroundColor: colors.white,
+    borderRadius: borderRadius.md, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: colors.border.light,
   },
-  filterBtnActive: {
-    borderColor: colors.primary.main,
-    backgroundColor: colors.primary.light + '20',
-  },
+  filterBtnActive: { borderColor: colors.primary.main, backgroundColor: colors.primary.light + '10' },
 
   // Tabs
   tabs: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    padding: spacing.xs,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.light,
+    flexDirection: 'row', backgroundColor: colors.white,
+    padding: spacing.xs, marginHorizontal: spacing.md, marginBottom: spacing.md,
+    borderRadius: borderRadius.lg, borderWidth: 1, borderColor: colors.border.light,
   },
   tab: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: borderRadius.md },
   activeTab: { backgroundColor: colors.primary.main },
@@ -637,13 +621,8 @@ const styles = StyleSheet.create({
   // List
   list: { padding: spacing.md, paddingTop: 0 },
   card: {
-    backgroundColor: colors.white,
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border.light,
-    elevation: 1,
+    backgroundColor: colors.white, padding: spacing.md, borderRadius: borderRadius.lg,
+    marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border.light, elevation: 1,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   info: { flex: 1 },
@@ -652,56 +631,22 @@ const styles = StyleSheet.create({
   time: { ...typography.textStyles.caption, color: colors.text.tertiary, marginTop: 4 },
   actions: { marginLeft: spacing.md },
   checkoutBtn: {
-    backgroundColor: colors.error.background,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.error.light,
+    backgroundColor: colors.error.background, paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs, borderRadius: borderRadius.md,
+    borderWidth: 1, borderColor: colors.error.light,
   },
   checkoutText: { ...typography.textStyles.caption, fontWeight: '700', color: colors.error.main },
   empty: { padding: spacing.xl, alignItems: 'center' },
   emptyText: { color: colors.text.tertiary },
 
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    elevation: 5,
-  },
-  modalTitle: {
-    ...typography.textStyles.h4,
-    marginBottom: spacing.md,
-    color: colors.text.primary,
-    textAlign: 'center',
-  },
-  filterOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  filterOptionActive: {
-    backgroundColor: colors.primary.light + '10',
-  },
-  filterText: {
-    ...typography.textStyles.bodyLarge,
-    color: colors.text.secondary,
-  },
-  filterTextActive: {
-    color: colors.primary.main,
-    fontWeight: '700',
-  },
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '80%', backgroundColor: colors.white, borderRadius: borderRadius.lg, padding: spacing.lg, elevation: 5 },
+  modalTitle: { ...typography.textStyles.h4, marginBottom: spacing.md, color: colors.text.primary, textAlign: 'center' },
+  filterOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border.light },
+  filterOptionActive: { backgroundColor: colors.primary.light + '10' },
+  filterText: { ...typography.textStyles.bodyLarge, color: colors.text.secondary },
+  filterTextActive: { color: colors.primary.main, fontWeight: '700' },
 });
 
 export default GuardVisitorsScreen;
