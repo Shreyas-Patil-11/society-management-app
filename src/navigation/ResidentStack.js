@@ -33,9 +33,12 @@ import ComplaintInfoScreen from '../screens/resident/helpdesk/ComplaintInfoScree
 import NoticeBoardScreen from '../screens/resident/notices/NoticeBoardScreen';
 
 // Payment Screens
+// import PaymentMethodsScreen from '../screens/resident/payments/PaymentMethodsScreen';
+// import PaymentReceiptScreen from '../screens/resident/payments/PaymentReceiptScreen';
+// import PaymentSuccessScreen from '../screens/resident/home/PaymentSuccessScreen';
+import PaymentsScreen from '../screens/resident/payments/PaymentsScreen';
 import PaymentMethodsScreen from '../screens/resident/payments/PaymentMethodsScreen';
 import PaymentReceiptScreen from '../screens/resident/payments/PaymentReceiptScreen';
-import PaymentSuccessScreen from '../screens/resident/home/PaymentSuccessScreen';
 
 // Amenity Screens
 import BookedAmenitiesScreen from '../screens/resident/amenities/BookedAmenitiesScreen';
@@ -74,6 +77,9 @@ import TermsConditionsScreen from '../screens/resident/profile/TermsConditionsSc
 import ProfileScreen from '../screens/resident/profile/ProfileScreen';
 import EditProfileScreen from '../screens/resident/profile/EditProfileScreen'; 
 import ServicemanEntryScreen from '../screens/guard/ServicemanEntryScreen';
+import RaiseTicketScreen from '../screens/resident/helpdesk/RaiseTicketScreen';
+import NeighboursScreen from '../screens/resident/services/NeighboursScreen';
+import DocumentsScreen from '../screens/resident/services/DocumentsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -172,6 +178,8 @@ const ResidentStack = () => {
         component={ComplaintInfoScreen}
       />
 
+      <Stack.Screen name="RaiseTicket" component={RaiseTicketScreen} />
+
       {/* ==================== NOTICE SCREENS ==================== */}
 
       <Stack.Screen
@@ -181,7 +189,7 @@ const ResidentStack = () => {
 
       {/* ==================== PAYMENT SCREENS ==================== */}
 
-      <Stack.Screen
+      {/* <Stack.Screen
         name="PaymentMethods"
         component={PaymentMethodsScreen}
       /> 
@@ -189,7 +197,11 @@ const ResidentStack = () => {
       <Stack.Screen
         name="PaymentReceipt"
         component={PaymentReceiptScreen}
-      />
+      /> */}
+
+      <Stack.Screen name="Payments" component={PaymentsScreen} />
+      <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+      <Stack.Screen name="PaymentReceipt" component={PaymentReceiptScreen} />
 
       {/* ==================== AMENITY SCREENS ==================== */}
 
@@ -252,6 +264,9 @@ const ResidentStack = () => {
         name="MyBookings"
         component={MyBookingsScreen}
       />
+
+      <Stack.Screen name="Documents" component={DocumentsScreen} />
+      <Stack.Screen name="Neighbours" component={NeighboursScreen} />
 
       {/* ==================== PROFILE SCREENS ==================== */}
       

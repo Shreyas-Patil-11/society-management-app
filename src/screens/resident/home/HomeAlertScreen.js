@@ -1,26 +1,4 @@
-// import React from 'react';
-// import { View, Text } from 'react-native';
-// import { Header, Button } from '../../../components/common';
-// import { colors, spacing, typography } from '../../../theme';
 
-// const HomeAlertScreen = ({ navigation }) => {
-//   return (
-//     <View style={{ flex: 1, backgroundColor: colors.error.background }}>
-//       <Header title="Emergency Alert" />
-//       <View style={{ padding: spacing.base }}>
-//         <Text style={typography.textStyles.h2}>
-//           Emergency Alert Raised
-//         </Text>
-//         <Text style={{ marginVertical: spacing.sm }}>
-//           Security has been notified.
-//         </Text>
-//         <Button title="Back to Home" onPress={() => navigation.goBack()} />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default HomeAlertScreen;
 
 
 /**

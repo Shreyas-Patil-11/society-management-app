@@ -1,23 +1,3 @@
-// import React from 'react';
-// import { View } from 'react-native';
-// import { Header, Button } from '../../../components/common';
-// import { spacing } from '../../../theme';
-
-// const AllowServicemanScreen = ({ navigation }) => {
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Header title="Allow Serviceman" />
-//       <View style={{ padding: spacing.base }}>
-//         <Button
-//           title="Generate Service Gatepass"
-//           onPress={() => navigation.navigate('Gatepass', { type: 'service' })}
-//         />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default AllowServicemanScreen;
 
 
 /**

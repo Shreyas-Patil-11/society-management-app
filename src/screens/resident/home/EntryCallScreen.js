@@ -1,24 +1,3 @@
-// import React from 'react';
-// import { View, Text } from 'react-native';
-// import { Header, Button } from '../../../components/common';
-// import { spacing, typography } from '../../../theme';
-
-// const EntryCallScreen = ({ navigation }) => {
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Header title="Entry Call" />
-//       <View style={{ padding: spacing.base }}>
-//         <Text style={typography.textStyles.bodyLarge}>
-//           Guard is requesting entry approval.
-//         </Text>
-//         <Button title="Allow" />
-//         <Button title="Decline" variant="secondary" />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default EntryCallScreen;
 
 
 /**

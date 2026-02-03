@@ -1,32 +1,3 @@
-// import React from 'react';
-// import { View, FlatList, Text } from 'react-native';
-// import { Header, Card } from '../../../components/common';
-// import { colors, spacing, typography } from '../../../theme';
-// import { notices } from '../../../mock/notices';
-
-// const NoticeBoardScreen = () => {
-//   return (
-//     <View style={{ flex: 1, backgroundColor: colors.background.secondary }}>
-//       <Header title="Notice Board" />
-
-//       <FlatList
-//         contentContainerStyle={{ padding: spacing.base }}
-//         data={notices}
-//         keyExtractor={(item) => item.id}
-//         renderItem={({ item }) => (
-//           <Card>
-//             <Text style={typography.textStyles.h4}>{item.title}</Text>
-//             <Text style={{ marginTop: spacing.xs }}>
-//               {item.description}
-//             </Text>
-//           </Card>
-//         )}
-//       />
-//     </View>
-//   );
-// };
-
-// export default NoticeBoardScreen;
 
 
 /**

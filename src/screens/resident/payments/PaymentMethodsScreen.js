@@ -1,31 +1,8 @@
-// import React from 'react';
-// import { View, Text, StyleSheet } from 'react-native';
-// import { colors } from '../../../theme/colors';
-// import Header from '../../../components/common/Header';
-
-// const PaymentMethodsScreen = () => {
-//   return (
-//     <View style={styles.container}>
-//       <Header title="Payment Methods" />
-//       <Text>Payment Methods Screen</Text>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: colors.background.primary,
-//     padding: 16,
-//   },
-// });
-
-// export default PaymentMethodsScreen;
 
 
 /**
  * Payment Methods Screen
- * * Displays pending dues and allows payment method selection.
+ * Select Mode -> Call Backend -> Navigate to Receipt
  */
 
 import React, { useState } from 'react';
@@ -35,7 +12,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -49,31 +26,57 @@ import Button from '../../../components/common/Button';
 import Card from '../../../components/common/Card';
 import { useToast } from '../../../hooks/useToast';
 
+// Service
+import { makePayment } from '../../../services/paymentService';
+
 const PAYMENT_METHODS = [
-  { id: 'upi', label: 'UPI', icon: 'smartphone', sub: 'GPay, PhonePe, Paytm' },
-  { id: 'card', label: 'Credit / Debit Card', icon: 'credit-card', sub: 'Visa, Mastercard' },
-  { id: 'netbanking', label: 'Net Banking', icon: 'account-balance', sub: 'All Indian banks' },
+  { id: 'UPI', label: 'UPI', icon: 'smartphone', sub: 'GPay, PhonePe, Paytm' },
+  { id: 'CARD', label: 'Credit / Debit Card', icon: 'credit-card', sub: 'Visa, Mastercard' },
+  { id: 'NET_BANKING', label: 'Net Banking', icon: 'account-balance', sub: 'All Indian banks' },
 ];
 
 const PaymentMethodsScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const { showSuccess } = useToast();
-  const amount = route.params?.amount || '4,500';
-  const billTitle = route.params?.title || 'Maintenance Bill - Oct 2023';
+  const { showSuccess, showError } = useToast();
   
-  const [selectedMethod, setSelectedMethod] = useState('upi');
+  // Get params passed from PaymentsScreen
+  const { billId, amount, title } = route.params || {};
+  
+  const [selectedMethod, setSelectedMethod] = useState('UPI');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handlePay = () => {
+  const handlePay = async () => {
+    if (!billId) {
+        showError("Invalid Bill ID");
+        return;
+    }
+
     setIsProcessing(true);
-    // Simulate Payment Gateway delay
-    setTimeout(() => {
-      setIsProcessing(false);
-      navigation.replace('PaymentReceipt', { 
-        amount, 
-        transactionId: 'TXN' + Math.floor(Math.random() * 1000000) 
-      });
-    }, 2000);
+
+    try {
+        const payload = {
+            bill_id: billId,
+            amount: amount,
+            payment_mode: selectedMethod // 'UPI', 'CARD', etc.
+        };
+
+        const result = await makePayment(payload);
+
+        if (result.success) {
+            showSuccess('Payment Successful!');
+            // Navigate to Receipt with the response data (Transaction ID etc.)
+            navigation.replace('PaymentReceipt', { 
+                paymentData: result.data,
+                amount: amount
+            });
+        } else {
+            showError(result.message || 'Payment Failed');
+        }
+    } catch (error) {
+        showError('Network Error');
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   return (
@@ -88,7 +91,7 @@ const PaymentMethodsScreen = ({ navigation, route }) => {
           <View style={styles.divider} />
           <View style={styles.billRow}>
             <Text style={styles.billDetailLabel}>Payment For</Text>
-            <Text style={styles.billDetailValue}>{billTitle}</Text>
+            <Text style={styles.billDetailValue}>{title}</Text>
           </View>
         </Card>
 
@@ -143,123 +146,29 @@ const PaymentMethodsScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.secondary,
-  },
-  content: {
-    padding: spacing.lg,
-  },
-  billCard: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    paddingVertical: spacing.xl,
-  },
-  billLabel: {
-    ...typography.textStyles.bodyMedium,
-    color: colors.text.secondary,
-    marginBottom: spacing.xs,
-  },
-  billAmount: {
-    ...typography.textStyles.h2,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  divider: {
-    height: 1,
-    width: '100%',
-    backgroundColor: colors.border.light,
-    marginVertical: spacing.md,
-  },
-  billRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  billDetailLabel: {
-    ...typography.textStyles.bodyMedium,
-    color: colors.text.secondary,
-  },
-  billDetailValue: {
-    ...typography.textStyles.bodyMedium,
-    fontWeight: '600',
-    color: colors.text.primary,
-  },
-  sectionTitle: {
-    ...typography.textStyles.h4,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  methodsContainer: {
-    backgroundColor: colors.background.primary,
-    borderRadius: borderRadius.lg,
-    padding: spacing.sm,
-  },
-  methodItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.xs,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  selectedMethod: {
-    borderColor: colors.primary.main,
-    backgroundColor: colors.primary.background,
-  },
-  methodIconBox: {
-    width: 40,
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  methodInfo: {
-    flex: 1,
-  },
-  methodLabel: {
-    ...typography.textStyles.bodyMedium,
-    fontWeight: '600',
-    color: colors.text.primary,
-  },
-  selectedText: {
-    color: colors.primary.main,
-  },
-  methodSub: {
-    ...typography.textStyles.caption,
-    color: colors.text.tertiary,
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: colors.text.tertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary.main,
-  },
-  footer: {
-    padding: spacing.lg,
-    backgroundColor: colors.background.primary,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.light,
-  },
-  secureBadge: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: 4,
-  },
-  secureText: {
-    ...typography.textStyles.caption,
-    color: colors.text.secondary,
-  },
+  container: { flex: 1, backgroundColor: colors.background.secondary },
+  content: { padding: spacing.lg },
+  billCard: { alignItems: 'center', marginBottom: spacing.xl, paddingVertical: spacing.xl },
+  billLabel: { ...typography.textStyles.bodyMedium, color: colors.text.secondary, marginBottom: spacing.xs },
+  billAmount: { ...typography.textStyles.h2, color: colors.text.primary, marginBottom: spacing.md },
+  divider: { height: 1, width: '100%', backgroundColor: colors.border.light, marginVertical: spacing.md },
+  billRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+  billDetailLabel: { ...typography.textStyles.bodyMedium, color: colors.text.secondary },
+  billDetailValue: { ...typography.textStyles.bodyMedium, fontWeight: '600', color: colors.text.primary },
+  sectionTitle: { ...typography.textStyles.h4, color: colors.text.primary, marginBottom: spacing.md },
+  methodsContainer: { backgroundColor: colors.background.primary, borderRadius: borderRadius.lg, padding: spacing.sm },
+  methodItem: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, borderRadius: borderRadius.md, marginBottom: spacing.xs, borderWidth: 1, borderColor: 'transparent' },
+  selectedMethod: { borderColor: colors.primary.main, backgroundColor: colors.primary.background },
+  methodIconBox: { width: 40, alignItems: 'center', marginRight: spacing.md },
+  methodInfo: { flex: 1 },
+  methodLabel: { ...typography.textStyles.bodyMedium, fontWeight: '600', color: colors.text.primary },
+  selectedText: { color: colors.primary.main },
+  methodSub: { ...typography.textStyles.caption, color: colors.text.tertiary },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: colors.text.tertiary, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary.main },
+  footer: { padding: spacing.lg, backgroundColor: colors.background.primary, borderTopWidth: 1, borderTopColor: colors.border.light },
+  secureBadge: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: spacing.sm, gap: 4 },
+  secureText: { ...typography.textStyles.caption, color: colors.text.secondary },
 });
 
 export default PaymentMethodsScreen;

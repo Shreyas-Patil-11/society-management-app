@@ -1,228 +1,163 @@
-// import React from 'react';
-// import { View, FlatList } from 'react-native';
-// import { Header, Card, Button, StatusBadge } from '../../../components/common';
-// import { colors, spacing } from '../../../theme';
-// import { COMPLAINT_STATUS } from '../../../utils/constants';
-// import { complaints } from '../../../mock/complaints';
-
-// const HelpDeskScreen = ({ navigation }) => {
-//   return (
-//     <View style={{ flex: 1, backgroundColor: colors.background.secondary }}>
-//       <Header title="Help Desk" />
-
-//       <FlatList
-//         contentContainerStyle={{ padding: spacing.base }}
-//         data={complaints}
-//         keyExtractor={(item) => item.id}
-//         renderItem={({ item }) => (
-//           <Card onPress={() => navigation.navigate('ComplaintInfo', { id: item.id })}>
-//             <Card.Row>
-//               <Card.Title>{item.title}</Card.Title>
-//               <StatusBadge status={item.status} />
-//             </Card.Row>
-//             <Card.Subtitle>{item.category}</Card.Subtitle>
-//           </Card>
-//         )}
-//         ListFooterComponent={
-//           <Button
-//             title="Raise Complaint"
-//             onPress={() => navigation.navigate('RaiseComplaint')}
-//             style={{ marginTop: spacing.lg }}
-//           />
-//         }
-//       />
-//     </View>
-//   );
-// };
-
-// export default HelpDeskScreen;
-
 
 /**
- * Helpdesk Screen
- * * View and manage support tickets.
+ * Help Desk Screen (My Complaints)
+ * Connected to Backend API
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { colors } from '../../../theme/colors';
 import { typography } from '../../../theme/typography';
 import { spacing } from '../../../theme/spacing';
+import { borderRadius } from '../../../theme/borderRadius';
 import Header from '../../../components/common/Header';
 import StatusBadge from '../../../components/common/StatusBadge';
-import FloatingActionButton from '../../../components/common/FloatingActionButton';
-import { borderRadius } from '../../../theme/borderRadius';
 
-// Mock Data
-const TICKETS = [
-  { id: '1', title: 'Leaking Tap in Kitchen', category: 'Plumbing', date: 'Oct 24', status: 'pending', id_disp: '#1023' },
-  { id: '2', title: 'Lift A not working', category: 'Electrical', date: 'Oct 22', status: 'resolved', id_disp: '#1019' },
-  { id: '3', title: 'Garbage not collected', category: 'Housekeeping', date: 'Oct 20', status: 'rejected', id_disp: '#1012' },
-];
+// Import Service
+import { getMyComplaints } from '../../../services/ComplaintService';
 
-const TicketItem = ({ ticket, onPress }) => (
-  <TouchableOpacity style={styles.ticketItem} onPress={onPress}>
-    <View style={styles.ticketHeader}>
-      <Text style={styles.ticketId}>{ticket.id_disp}</Text>
-      <StatusBadge status={ticket.status} size="small" />
-    </View>
-    <Text style={styles.ticketTitle}>{ticket.title}</Text>
-    <View style={styles.ticketFooter}>
-      <View style={styles.categoryBadge}>
-        <Icon name="tag" size={14} color={colors.text.secondary} />
-        <Text style={styles.categoryText}>{ticket.category}</Text>
+const ComplaintItem = ({ item }) => (
+  <TouchableOpacity style={styles.card} activeOpacity={0.9}>
+    <View style={styles.cardHeader}>
+      <View style={styles.headerLeft}>
+        <Text style={styles.ticketId}>#{item.id}</Text>
+        <Text style={styles.date}>{item.date}</Text>
       </View>
-      <Text style={styles.dateText}>{ticket.date}</Text>
+      <StatusBadge status={item.status} />
+    </View>
+    
+    <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+    <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+    
+    <View style={styles.divider} />
+    
+    <View style={styles.footer}>
+      <View style={styles.categoryBadge}>
+        <Icon name="build" size={14} color={colors.text.secondary} />
+        <Text style={styles.categoryText}>Maintenance</Text>
+      </View>
+      <Icon name="chevron-right" size={20} color={colors.text.tertiary} />
     </View>
   </TouchableOpacity>
 );
 
 const HelpDeskScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState('active'); // active | history
+  
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchComplaints = async () => {
+    try {
+      const result = await getMyComplaints();
+      if (result.success && Array.isArray(result.data)) {
+        // Map Backend Data to UI
+        const mappedData = result.data.map(item => ({
+          id: item.id.toString(),
+          title: item.title,
+          description: item.description,
+          status: item.status.toLowerCase(), // 'OPEN' -> 'open' for Badge
+          date: new Date(item.created_at).toLocaleDateString(),
+          rawDate: new Date(item.created_at)
+        }));
+        
+        // Sort by newest
+        mappedData.sort((a, b) => b.rawDate - a.rawDate);
+        setComplaints(mappedData);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchComplaints();
+    }, [])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchComplaints();
+  };
 
   return (
     <View style={styles.container}>
-      <Header title="Helpdesk" showBack />
+      <Header 
+        title="Help Desk" 
+        showBack 
+        rightIcons={[
+          { icon: 'add', onPress: () => navigation.navigate('RaiseTicket') }
+        ]}
+      />
       
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'active' && styles.activeTab]} 
-          onPress={() => setActiveTab('active')}
-        >
-          <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>Active</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tab, activeTab === 'history' && styles.activeTab]} 
-          onPress={() => setActiveTab('history')}
-        >
-          <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>History</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={TICKETS} // In real app, filter based on activeTab
-        keyExtractor={item => item.id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
-        renderItem={({ item }) => (
-          <TicketItem 
-            ticket={item} 
-            onPress={() => navigation.navigate('ComplaintInfo', { ticketId: item.id })} 
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="done-all" size={64} color={colors.border.main} />
-            <Text style={styles.emptyText}>No complaints found</Text>
-          </View>
-        }
-      />
-
-      <FloatingActionButton
-        icon="add" 
-        onPress={() => navigation.navigate('RaiseComplaint')} 
-      />
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary.main} />
+        </View>
+      ) : (
+        <FlatList
+          data={complaints}
+          keyExtractor={item => item.id}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          renderItem={({ item }) => <ComplaintItem item={item} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Icon name="support-agent" size={64} color={colors.text.tertiary} />
+              <Text style={styles.emptyTitle}>No Complaints Yet</Text>
+              <Text style={styles.emptySubtitle}>Have an issue? Tap + to raise a ticket.</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.secondary,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: colors.background.primary,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.light,
-  },
-  tab: {
-    paddingVertical: spacing.md,
-    marginRight: spacing.xl,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: colors.primary.main,
-  },
-  tabText: {
-    ...typography.textStyles.bodyMedium,
-    color: colors.text.secondary,
-    fontWeight: '600',
-  },
-  activeTabText: {
-    color: colors.primary.main,
-  },
-  list: {
-    padding: spacing.md,
-  },
-  ticketItem: {
-    backgroundColor: colors.background.primary,
-    borderRadius: borderRadius.md,
+  container: { flex: 1, backgroundColor: colors.background.secondary },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  list: { padding: spacing.md },
+  card: {
+    backgroundColor: colors.white,
     padding: spacing.md,
     marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border.light,
+    borderRadius: borderRadius.lg,
+    elevation: 2,
   },
-  ticketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
-  },
-  ticketId: {
-    ...typography.textStyles.caption,
-    color: colors.text.tertiary,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  ticketTitle: {
-    ...typography.textStyles.bodyLarge,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  ticketFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  ticketId: { ...typography.textStyles.caption, fontWeight: '700', color: colors.primary.main },
+  date: { ...typography.textStyles.caption, color: colors.text.tertiary },
+  title: { ...typography.textStyles.h4, color: colors.text.primary, marginBottom: 4 },
+  description: { ...typography.textStyles.bodyMedium, color: colors.text.secondary, marginBottom: spacing.md },
+  divider: { height: 1, backgroundColor: colors.border.light, marginBottom: spacing.sm },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.secondary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.sm,
-    gap: 4,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background.tertiary,
+    paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: borderRadius.sm, gap: 4
   },
-  categoryText: {
-    ...typography.textStyles.caption,
-    color: colors.text.secondary,
-  },
-  dateText: {
-    ...typography.textStyles.caption,
-    color: colors.text.tertiary,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    marginTop: 100,
-  },
-  emptyText: {
-    marginTop: spacing.md,
-    color: colors.text.tertiary,
-  },
+  categoryText: { ...typography.textStyles.caption, color: colors.text.secondary },
+  empty: { alignItems: 'center', marginTop: 100 },
+  emptyTitle: { ...typography.textStyles.h3, color: colors.text.secondary, marginTop: spacing.md },
+  emptySubtitle: { ...typography.textStyles.bodyMedium, color: colors.text.tertiary, marginTop: spacing.xs },
 });
 
 export default HelpDeskScreen;

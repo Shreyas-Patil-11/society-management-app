@@ -1,18 +1,3 @@
-// import React from 'react'
-// import { View } from 'react-native'
-// import { Text } from 'react-native-gesture-handler'
-
-// const SelectAmenityScreen = () => {
-//   return (
-//     <View>
-//         <Text>
-//             SelectAmenityScreen
-//         </Text>
-//     </View>
-//   )
-// }
-
-// export default SelectAmenityScreen
 
 /**
  * Select Amenity Screen

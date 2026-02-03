@@ -1,24 +1,3 @@
-// import React from 'react';
-// import { View } from 'react-native';
-// import { Header, Button } from '../../../components/common';
-// import { spacing } from '../../../theme';
-
-// const AllowDeliveryScreen = ({ navigation }) => {
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Header title="Allow Delivery" />
-//       <View style={{ padding: spacing.base }}>
-//         <Button
-//           title="Generate Delivery Gatepass"
-//           onPress={() => navigation.navigate('Gatepass', { type: 'delivery' })}
-//         />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default AllowDeliveryScreen;
-
 
 /**
  * Allow Delivery Screen

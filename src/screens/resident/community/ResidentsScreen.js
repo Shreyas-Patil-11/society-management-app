@@ -1,18 +1,3 @@
-// import React from 'react'
-// import { View } from 'react-native'
-// import { Text } from 'react-native-gesture-handler'
-
-// const ResidentsScreen = () => {
-//   return (
-//     <View>
-//         <Text>
-//             ResidentsScreen
-//         </Text>
-//     </View>
-//   )
-// }
-
-// export default ResidentsScreen
 
 
 /**

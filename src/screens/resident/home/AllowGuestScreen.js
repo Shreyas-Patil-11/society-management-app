@@ -1,28 +1,3 @@
-// import React, { useState } from 'react';
-// import { View } from 'react-native';
-// import { Header, Input, Button } from '../../../components/common';
-// import { spacing } from '../../../theme';
-
-// const AllowGuestScreen = ({ navigation }) => {
-//   const [name, setName] = useState('');
-
-//   const generateGatepass = () => {
-//     // API: POST /resident/visitors/preapprove
-//     navigation.navigate('Gatepass', { type: 'guest', name });
-//   };
-
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Header title="Allow Guest" />
-//       <View style={{ padding: spacing.base }}>
-//         <Input label="Guest Name" value={name} onChangeText={setName} />
-//         <Button title="Generate Gatepass" onPress={generateGatepass} />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default AllowGuestScreen;
 
 
 /**

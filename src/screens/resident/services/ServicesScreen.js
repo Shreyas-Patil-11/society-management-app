@@ -1,11 +1,8 @@
+
 /**
  * Services Hub Screen
- * * Central hub for all utility features:
- * - Payments
- * - Helpdesk
- * - Amenities
- * - Bookings
- * - Directory
+ * UI: User Defined (Grid + Banner)
+ * Integration: Connected to Backend Routes (Neighbours, HelpDesk, Payments)
  */
 
 import React from 'react';
@@ -16,6 +13,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -32,13 +30,15 @@ const COLUMN_COUNT = 2;
 const GAP = spacing.md;
 const ITEM_WIDTH = (width - (spacing.lg * 2) - (GAP * (COLUMN_COUNT - 1))) / COLUMN_COUNT;
 
+// CONFIGURATION: Map UI items to Navigation Routes
 const SERVICE_ITEMS = [
   { 
     id: 'payments', 
     label: 'Payments', 
     icon: 'account-balance-wallet', 
     color: colors.primary.main, 
-    route: 'PaymentMethods',
+    route: 'Payments', // MATCHES ResidentStack.js
+    
     desc: 'Pay maintenance & bills' 
   },
   { 
@@ -46,7 +46,7 @@ const SERVICE_ITEMS = [
     label: 'Helpdesk', 
     icon: 'support-agent', 
     color: colors.error.main, 
-    route: 'HelpDesk',
+    route: 'HelpDesk', // MATCHES ResidentStack.js
     desc: 'Complaints & suggestions' 
   },
   { 
@@ -54,7 +54,7 @@ const SERVICE_ITEMS = [
     label: 'Amenities', 
     icon: 'pool', 
     color: colors.info.main, 
-    route: 'SelectAmenity',
+    route: 'Amenities', // Placeholder
     desc: 'Book clubhouse, court' 
   },
   { 
@@ -62,7 +62,7 @@ const SERVICE_ITEMS = [
     label: 'My Bookings', 
     icon: 'event-available', 
     color: colors.secondary.main, 
-    route: 'MyBookings',
+    route: 'MyBookings', // Placeholder
     desc: 'Track your reservations' 
   },
   { 
@@ -70,7 +70,7 @@ const SERVICE_ITEMS = [
     label: 'Residents', 
     icon: 'contacts', 
     color: colors.success.main, 
-    route: 'Residents',
+    route: 'Neighbours', // MATCHES ResidentStack.js (Backend Integrated)
     desc: 'Find neighbors' 
   },
   { 
@@ -78,15 +78,15 @@ const SERVICE_ITEMS = [
     label: 'Documents', 
     icon: 'description', 
     color: colors.warning.dark, 
-    route: 'Settings', // Placeholder
+    route: 'Documents', // Placeholder
     desc: 'Society rules & forms' 
   },
 ];
 
-const ServiceCard = ({ item, navigation }) => (
+const ServiceCard = ({ item, onPress }) => (
   <TouchableOpacity 
     style={styles.card}
-    onPress={() => navigation.navigate(item.route)}
+    onPress={() => onPress(item)}
     activeOpacity={0.8}
   >
     <View style={[styles.iconBox, { backgroundColor: item.color + '15' }]}>
@@ -103,6 +103,18 @@ const ServiceCard = ({ item, navigation }) => (
 const ServicesScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
 
+  const handlePress = (item) => {
+    // Check if the route exists in our Stack and is backend-ready
+    const activeRoutes = ['Neighbours', 'HelpDesk', 'Payments', 'HomeAlert', 'Documents'];
+
+    if (activeRoutes.includes(item.route)) {
+      navigation.navigate(item.route);
+    } else {
+      // Show alert for modules without backend integration
+      Alert.alert('Coming Soon', `${item.label} module is under development.`);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Header title="Services" showBack={false} />
@@ -118,7 +130,11 @@ const ServicesScreen = ({ navigation }) => {
         
         <View style={styles.row}>
           {SERVICE_ITEMS.map((item) => (
-            <ServiceCard key={item.id} item={item} navigation={navigation} />
+            <ServiceCard 
+              key={item.id} 
+              item={item} 
+              onPress={handlePress} 
+            />
           ))}
         </View>
 
@@ -126,7 +142,7 @@ const ServicesScreen = ({ navigation }) => {
         <Text style={[styles.sectionHeader, { marginTop: spacing.xl }]}>Local Services</Text>
         <TouchableOpacity 
           style={styles.banner}
-          onPress={() => navigation.navigate('Services')} // Leads to Daily Help list
+          onPress={() => Alert.alert('Coming Soon', 'Daily Help directory is coming soon.')} 
         >
           <View style={styles.bannerContent}>
             <Text style={styles.bannerTitle}>Find Daily Help</Text>

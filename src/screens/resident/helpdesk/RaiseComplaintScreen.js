@@ -1,36 +1,3 @@
-// import React, { useState } from 'react';
-// import { View } from 'react-native';
-// import { Header, Input, Button } from '../../../components/common';
-// import { spacing } from '../../../theme';
-// import { COMPLAINT_CATEGORIES } from '../../../utils/constants';
-
-// const RaiseComplaintScreen = ({ navigation }) => {
-//   const [title, setTitle] = useState('');
-//   const [description, setDescription] = useState('');
-
-//   const submitComplaint = () => {
-//     // API: POST /resident/complaints/create
-//     navigation.goBack();
-//   };
-
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Header title="Raise Complaint" />
-//       <View style={{ padding: spacing.base }}>
-//         <Input label="Title" value={title} onChangeText={setTitle} />
-//         <Input
-//           label="Description"
-//           value={description}
-//           onChangeText={setDescription}
-//           multiline
-//         />
-//         <Button title="Submit" onPress={submitComplaint} />
-//       </View>
-//     </View>
-//   );
-// };
-
-// export default RaiseComplaintScreen;
 
 
 /**
