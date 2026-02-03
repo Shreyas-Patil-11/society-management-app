@@ -80,6 +80,7 @@ import ServicemanEntryScreen from '../screens/guard/ServicemanEntryScreen';
 import RaiseTicketScreen from '../screens/resident/helpdesk/RaiseTicketScreen';
 import NeighboursScreen from '../screens/resident/services/NeighboursScreen';
 import DocumentsScreen from '../screens/resident/services/DocumentsScreen';
+import ApprovalPendingScreen from '../screens/auth/ApprovalPendingScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -116,6 +117,11 @@ const ResidentStack = () => {
       <Stack.Screen
         name="ResidentTabs"
         component={ResidentTabs}
+      />
+
+      <Stack.Screen 
+        name="ApprovalPending" 
+        component={ApprovalPendingScreen} 
       />
 
       <Stack.Screen name="Profile" component={ProfileScreen} />

@@ -16,6 +16,8 @@ import SignUpScreen from '../screens/auth/SignUpScreen';
 import OTPVerificationScreen from '../screens/auth/OTPVerificationScreen';
 import SelectSocietyScreen from '../screens/auth/SelectSocietyScreen';
 import SecurityLoginScreen from '../screens/auth/SecurityLoginScreen';
+import SelectFlatScreen from '../screens/auth/SelectFlatScreen';
+import SelectBlockScreen from '../screens/auth/SelectBlockScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -63,6 +65,9 @@ const AuthStack = () => {
         component={OTPVerificationScreen}
       />
 
+      <Stack.Screen name="SelectFlat" component={SelectFlatScreen} />
+
+
       {/* Select Society Screen */}
       <Stack.Screen
         name="SelectSociety"
@@ -74,6 +79,9 @@ const AuthStack = () => {
         name="SecurityLogin"
         component={SecurityLoginScreen}
       />
+
+      <Stack.Screen name="SelectBlock" component={SelectBlockScreen} />
+      {/* <Stack.Screen name="SelectFlat" component={SelectFlatScreen} /> */}
     </Stack.Navigator>
   );
 };

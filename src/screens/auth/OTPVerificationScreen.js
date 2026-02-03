@@ -1,4 +1,5 @@
 
+
 /**
  * OTP Verification Screen
  *
@@ -34,12 +35,21 @@ import { formatPhoneNumber } from '../../utils/formatters';
 
 const OTPVerificationScreen = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  
-  // Get verifyOTP from AuthContext
-  const { verifyOTP, sendOTP } = useAuth();
-  const { showSuccess, showError } = useToast();
 
-  const { phone = '', isNewUser = false, userData = {} } = route.params || {};
+  // Get verifyOTP from AuthContext
+  // const { verifyOTP, sendOTP, registerUser } = useAuth(); // ✅ registerUser added
+  const { showSuccess, showError } = useToast();
+  const { verifyOTP, sendOTP, registerResident } = useAuth(); // ✅
+  
+
+  // ✅ Extract all required params
+  const {
+    phone = '',
+    isNewUser = false,
+    userData = {},
+    societyData = null,
+    flatData = null,
+  } = route.params || {};
 
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -86,66 +96,209 @@ const OTPVerificationScreen = ({ navigation, route }) => {
   /**
    * Handle OTP verification
    */
-  const handleVerify = async () => {
-    Keyboard.dismiss();
+  // const handleVerify = async () => {
+  //   Keyboard.dismiss();
 
-    if (otp.length !== 6) {
-      showError('Please enter complete OTP');
+  //   if (otp.length !== 6) {
+  //     showError('Please enter complete OTP');
+  //     shakeError();
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     // ---------------------------------------------------------
+  //     // 1. DETERMINE ROLE (MOCK LOGIC)
+  //     // ---------------------------------------------------------
+  //     let roleToLogin = 'resident';
+
+  //     if (otp === '999999') {
+  //       roleToLogin = 'guard';
+  //     }
+
+  //     // ---------------------------------------------------------
+  //     // 2. VERIFY OTP
+  //     // ---------------------------------------------------------
+  //     const result = await verifyOTP(phone, otp, roleToLogin);
+
+  //     if (!result.success) {
+  //       showError(result.message || 'Invalid OTP');
+  //       shakeError();
+  //       setOtp('');
+  //       otpInputRef.current?.clear();
+  //       return;
+  //     }
+
+  //     showSuccess('OTP Verified Successfully!');
+
+  //     // ---------------------------------------------------------
+  //     // ✅ 3. IF NEW USER, REGISTER USER WITH SOCIETY + FLAT
+  //     // ---------------------------------------------------------
+  //     if (isNewUser) {
+  //       if (!societyData?.id || !flatData?.id) {
+  //         showError('Society / Flat details missing!');
+  //         return;
+  //       }
+
+  //       const registerPayload = {
+  //         name: userData?.name,
+  //         email: userData?.email,
+  //         phone: phone, // ✅ use verified phone
+  //         society_id: societyData.id,
+  //         flat_id: flatData.id, // ✅ Pass Flat ID
+  //       };
+
+  //       console.log('Register Payload:', registerPayload);
+
+  //       // ✅ Call Register API (you can replace this with your API call)
+  //       // Example: const registerRes = await registerUser(registerPayload);
+
+  //       // Mock:
+  //       // await new Promise(resolve => setTimeout(resolve, 1000));
+
+  //       // ✅ Navigate / complete flow
+  //       showSuccess('Registration Successful!');
+  //       navigation.replace('Login'); // or Dashboard
+  //       return;
+  //     }
+
+  //     // ---------------------------------------------------------
+  //     // 4. EXISTING USER FLOW
+  //     // RootNavigator handles dashboard switching
+  //     // ---------------------------------------------------------
+  //     // If user has no society, send to select society
+  //     if (!result.data?.user?.societyId) {
+  //       navigation.replace('SelectSociety', {
+  //         userData: { ...userData, phone },
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     showError('Something went wrong. Please try again.');
+  //     shakeError();
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const handleVerify = async () => {
+  Keyboard.dismiss();
+
+  if (otp.length !== 6) {
+    showError('Please enter complete OTP');
+    shakeError();
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    // ---------------------------------------------------------
+    // ✅ DUMMY OTP LOGIN (NO BACKEND)
+    // ---------------------------------------------------------
+    let roleToLogin = 'resident';
+
+    // Guard OTP
+    if (otp === '999999') {
+      roleToLogin = 'guard';
+    }
+
+    // ✅ Resident OTP allowed only if otp === 123456
+    if (roleToLogin === 'resident' && otp !== '123456') {
+      showError('Invalid OTP (Use 123456)');
       shakeError();
+      setOtp('');
+      otpInputRef.current?.clear();
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      // ---------------------------------------------------------
-      // 1. DETERMINE ROLE (MOCK LOGIC)
-      // ---------------------------------------------------------
-      let roleToLogin = 'resident'; // Default role
-
-      // If Guard OTP is used, switch role
-      if (otp === '999999') {
-        roleToLogin = 'guard'; 
-      }
-
-      // ---------------------------------------------------------
-      // 2. CALL CONTEXT
-      // We pass the role to verifyOTP. The Context will save this
-      // token and role to AsyncStorage.
-      // ---------------------------------------------------------
-      const result = await verifyOTP(phone, otp, roleToLogin);
-
-      if (result.success) {
-        showSuccess('Login Successful!');
-        
-        // ---------------------------------------------------------
-        // 3. NAVIGATION HANDLING
-        // The RootNavigator watches AuthContext state. 
-        // Once verifyOTP updates 'isAuthenticated' to true, 
-        // the app will AUTOMATICALLY switch to the correct Dashboard.
-        // We only need to manually handle the "Select Society" edge case.
-        // ---------------------------------------------------------
-
-        if (isNewUser && !result.data?.user?.societyId) {
-          navigation.replace('SelectSociety', {
-            userData: { ...userData, phone },
-          });
-        } 
-        
-      } else {
-        showError(result.message || 'Invalid OTP');
-        shakeError();
-        setOtp('');
-        otpInputRef.current?.clear();
-      }
-    } catch (error) {
-      console.error(error);
-      showError('Something went wrong. Please try again.');
+    // ✅ Guard OTP validation
+    if (roleToLogin === 'guard' && otp !== '999999') {
+      showError('Invalid OTP (Use 999999)');
       shakeError();
-    } finally {
-      setIsLoading(false);
+      setOtp('');
+      otpInputRef.current?.clear();
+      return;
     }
-  };
+
+    showSuccess('OTP Verified Successfully!');
+
+    // ---------------------------------------------------------
+    // ✅ NEW USER REGISTRATION
+    // ---------------------------------------------------------
+    if (isNewUser) {
+      if (!societyData?.id || !flatData?.id) {
+        showError('Society / Flat details missing!');
+        return;
+      }
+
+      if (!userData?.password) {
+        showError('Password missing. Please sign up again.');
+        return;
+      }
+
+      const registerPayload = {
+        name: userData?.name,
+        email: userData?.email,
+        phone: phone,
+        password: userData.password,
+        role: 'RESIDENT',
+        society_id: societyData.id,
+        flat_id: flatData.id,
+      };
+
+      console.log('✅ Register Payload:', registerPayload);
+
+      const registerRes = await registerResident(registerPayload);
+
+      if (!registerRes.success) {
+        showError(registerRes.message || 'Registration failed');
+        return;
+      }
+
+      showSuccess('Registered successfully! Waiting for admin approval.');
+
+      // ✅ ALWAYS redirect to ApprovalPending
+      navigation.replace('ApprovalPending', {
+        phone: phone,
+        name: userData?.name,
+      });
+
+      return;
+    }
+
+    // ---------------------------------------------------------
+    // ✅ EXISTING USER FLOW (for later)
+    // ---------------------------------------------------------
+    // navigation.replace("SignIn");
+
+  } catch (error) {
+    console.error(error);
+    showError('Something went wrong. Please try again.');
+    shakeError();
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+    // ---------------------------------------------------------
+    // ✅ 4) EXISTING USER LOGIN (dummy)
+    // ---------------------------------------------------------
+    // If you want dummy login without backend:
+    // navigation.replace('SignIn');
+
+//   } catch (error) {
+//     console.error(error);
+//     showError('Something went wrong. Please try again.');
+//     shakeError();
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
+
 
   const handleOTPComplete = code => {
     setOtp(code);
@@ -161,8 +314,7 @@ const OTPVerificationScreen = ({ navigation, route }) => {
     setIsResending(true);
 
     try {
-      // Simulate Resend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await sendOTP(phone); // ✅ real resend call
       showSuccess('OTP Resent Successfully');
       countdown.restart();
     } catch (e) {
@@ -215,10 +367,11 @@ const OTPVerificationScreen = ({ navigation, route }) => {
           />
         </Animated.View>
 
-        {/* Dev Note for Role Switching */}
+        {/* Dev Note */}
         <View style={styles.devNote}>
           <Text style={styles.devNoteText}>
-            <Text style={{ fontWeight: 'bold' }}>Resident:</Text> Any code (e.g., 123456){'\n'}
+            <Text style={{ fontWeight: 'bold' }}>Resident:</Text> Any code (e.g.,
+            123456{'\n'}
             <Text style={{ fontWeight: 'bold' }}>Guard:</Text> 999999
           </Text>
         </View>

@@ -19,12 +19,9 @@ export const loginWithEmail = async (email, password) => {
       password,
     });
 
-    // ✅ if apiClient returns this type:
-    // { success:false, message:"User not found", status:404 }
     if (response?.success === false) {
       const msg = (response?.message || '').toLowerCase();
 
-      // ✅ Map backend not found -> USER_NOT_FOUND
       if (
         response?.status === 404 ||
         response?.statusCode === 404 ||
@@ -40,7 +37,6 @@ export const loginWithEmail = async (email, password) => {
         };
       }
 
-      // ✅ Invalid password / unauthorized
       if (
         response?.status === 401 ||
         response?.statusCode === 401 ||
@@ -61,7 +57,6 @@ export const loginWithEmail = async (email, password) => {
       };
     }
 
-    // ✅ Success
     if (response?.success && response?.data) {
       const { user, token } = response.data;
 
@@ -73,7 +68,6 @@ export const loginWithEmail = async (email, password) => {
         };
       }
 
-      // determine role
       let role = USER_ROLES.RESIDENT;
       if (user?.role && (user.role === 'guard' || user.role === 'GUARD')) {
         role = USER_ROLES.GUARD;
@@ -116,24 +110,119 @@ export const logout = async () => {
 
 export const changePassword = async (currentPassword, newPassword) => {
   try {
-    // Backend Route: PUT /api/users/reset-password
     const response = await apiClient.put('/users/reset-password', {
       currentPassword,
-      newPassword
+      newPassword,
     });
 
     if (response.success) {
       return { success: true, message: 'Password changed successfully' };
     }
-    // Handle error messages from backend
-    return { success: false, message: response.message || 'Failed to change password' };
+
+    return {
+      success: false,
+      message: response.message || 'Failed to change password',
+    };
   } catch (error) {
     return { success: false, message: error.message || 'Network error' };
   }
 };
 
-export const sendOTP = async (phone) => ({ success: true, message: 'OTP Sent' });
-export const verifyOTP = async (phone, otp) => ({ success: true, message: 'Verified' });
+//
+// ✅ OTP FLOW
+//
+export const sendOTP = async phone => {
+  try {
+    const response = await apiClient.post('/auth/send-otp', { phone });
+
+    if (response?.success) {
+      return { success: true, message: response?.message || 'OTP sent' };
+    }
+
+    return {
+      success: false,
+      message: response?.message || 'Failed to send OTP',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error?.message || 'Network error',
+    };
+  }
+};
+
+export const verifyOTP = async (phone, otp, role) => {
+  try {
+    const response = await apiClient.post('/auth/verify-otp', {
+      phone,
+      otp,
+      role, // optional, depends on backend
+    });
+
+    if (response?.success && response?.data) {
+      return {
+        success: true,
+        data: response.data,
+        message: response?.message || 'OTP verified',
+      };
+    }
+
+    return {
+      success: false,
+      message: response?.message || 'Invalid OTP',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error?.message || 'Network error',
+    };
+  }
+};
+
+//
+// ✅ REGISTER RESIDENT FLOW
+//
+export const registerResident = async payload => {
+  try {
+    const response = await apiClient.post('/auth/register-resident', payload);
+
+    /**
+     * ✅ Expected backend response format should be like:
+     * {
+     *   success: true,
+     *   data: { user: {...}, token: "...", role: "resident" }
+     * }
+     */
+    if (response?.success && response?.data) {
+      let role = USER_ROLES.RESIDENT;
+
+      if (response?.data?.user?.role) {
+        const r = response.data.user.role;
+        if (r === 'guard' || r === 'GUARD') role = USER_ROLES.GUARD;
+      }
+
+      return {
+        success: true,
+        data: {
+          user: { ...response.data.user, role },
+          token: response.data.token,
+          role,
+        },
+        message: response?.message || 'Registration successful',
+      };
+    }
+
+    return {
+      success: false,
+      message: response?.message || 'Registration failed',
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error?.message || 'Network error',
+    };
+  }
+};
 
 export const authService = {
   loginWithEmail,
@@ -141,6 +230,7 @@ export const authService = {
   verifyOTP,
   logout,
   changePassword,
+  registerResident,
 };
 
 export default authService;

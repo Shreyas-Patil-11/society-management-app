@@ -28,6 +28,7 @@ const SignUpScreen = ({ navigation, route }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(signupEmail);
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
 
   // ✅ Auto-fill email if received later
   useEffect(() => {
@@ -45,8 +46,14 @@ const SignUpScreen = ({ navigation, route }) => {
     }
 
     navigation.navigate('SelectSociety', {
-      userData: { name, email, phone },
-    });
+  userData: {
+    name,
+    email,
+    phone,
+    password, // ✅ ADD THIS
+  },
+});
+
   };
 
   return (
@@ -87,6 +94,15 @@ const SignUpScreen = ({ navigation, route }) => {
               keyboardType="phone-pad"
               maxLength={10}
               leftIcon="phone"
+            />
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              type="password"
+              leftIcon="lock"
+              returnKeyType="done"
             />
 
             <Button
