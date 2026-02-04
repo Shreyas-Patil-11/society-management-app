@@ -255,7 +255,10 @@ export const loginWithEmail = async (email, password) => {
       password,
     });
 
+<<<<<<< HEAD
     // ✅ Failure Handling
+=======
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
     if (response?.success === false) {
       const msg = (response?.message || '').toLowerCase();
 
@@ -294,7 +297,10 @@ export const loginWithEmail = async (email, password) => {
       };
     }
 
+<<<<<<< HEAD
     // ✅ Success Handling
+=======
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
     if (response?.success && response?.data) {
       const { user, token } = response.data;
 
@@ -306,7 +312,10 @@ export const loginWithEmail = async (email, password) => {
         };
       }
 
+<<<<<<< HEAD
       // ✅ Role detection
+=======
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
       let role = USER_ROLES.RESIDENT;
       if (user?.role && (user.role === 'guard' || user.role === 'GUARD')) {
         role = USER_ROLES.GUARD;
@@ -421,7 +430,11 @@ export const verifyOTP = async (phone, otp, role) => {
     const response = await apiClient.post('/auth/verify-otp', {
       phone,
       otp,
+<<<<<<< HEAD
       role,
+=======
+      role, // optional, depends on backend
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
     });
 
     if (response?.success && response?.data) {
@@ -451,6 +464,16 @@ export const registerResident = async payload => {
   try {
     const response = await apiClient.post('/auth/register-resident', payload);
 
+<<<<<<< HEAD
+=======
+    /**
+     * ✅ Expected backend response format should be like:
+     * {
+     *   success: true,
+     *   data: { user: {...}, token: "...", role: "resident" }
+     * }
+     */
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
     if (response?.success && response?.data) {
       let role = USER_ROLES.RESIDENT;
 

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+/
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
 // Change this URL to your local IP address or hosted backend URL
 // For Android Emulator use: 'http://10.0.2.2:5000/api'
 // For Physical Device use: 'http://YOUR_LOCAL_IP:5000/api'
