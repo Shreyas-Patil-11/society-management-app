@@ -108,9 +108,12 @@ import SelectSocietyScreen from '../screens/auth/SelectSocietyScreen';
 import SecurityLoginScreen from '../screens/auth/SecurityLoginScreen';
 import SelectFlatScreen from '../screens/auth/SelectFlatScreen';
 import SelectBlockScreen from '../screens/auth/SelectBlockScreen';
+<<<<<<< HEAD
 
 // ✅ ADD THIS IMPORT
 import ApprovalPendingScreen from '../screens/auth/ApprovalPendingScreen';
+=======
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
 
 const Stack = createNativeStackNavigator();
 
@@ -153,6 +156,9 @@ const AuthStack = () => {
       {/* OTP Verification Screen */}
       <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
 
+      <Stack.Screen name="SelectFlat" component={SelectFlatScreen} />
+
+
       {/* Select Society Screen */}
       <Stack.Screen name="SelectSociety" component={SelectSocietyScreen} />
 
@@ -172,7 +178,17 @@ const AuthStack = () => {
       />
 
       {/* Security Login Screen (Guards) */}
+<<<<<<< HEAD
       <Stack.Screen name="SecurityLogin" component={SecurityLoginScreen} />
+=======
+      <Stack.Screen
+        name="SecurityLogin"
+        component={SecurityLoginScreen}
+      />
+
+      <Stack.Screen name="SelectBlock" component={SelectBlockScreen} />
+      {/* <Stack.Screen name="SelectFlat" component={SelectFlatScreen} /> */}
+>>>>>>> 9cd90fc36dc1d86a549d4799016b5724986f618c
     </Stack.Navigator>
   );
 };
