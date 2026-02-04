@@ -14,6 +14,7 @@ import {
   Platform,
   Keyboard,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -41,14 +42,14 @@ const SignInScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const passwordRef = useRef(null);
 
-  const phoneForm = useForm({ phone: '' }, (values) => {
+  const phoneForm = useForm({ phone: '' }, values => {
     const errors = {};
     if (!values.phone) errors.phone = 'Phone number is required';
     else if (!isValidPhone(values.phone)) errors.phone = 'Invalid phone number';
     return errors;
   });
 
-  const emailForm = useForm({ email: '', password: '' }, (values) => {
+  const emailForm = useForm({ email: '', password: '' }, values => {
     const errors = {};
     if (!values.email) errors.email = 'Email is required';
     else if (!isValidEmail(values.email)) errors.email = 'Invalid email format';
@@ -80,95 +81,59 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-  /**
-   * ✅ helper: detect user not found
-   */
-  // const isUserNotFound = (result) => {
-  //   const code = result?.code;
-  //   const msg = (result?.message || '').toLowerCase();
-
-  //   return (
-  //     code === 'USER_NOT_FOUND' ||
-  //     msg.includes('user not found') ||
-  //     msg.includes('account not found') ||
-  //     msg.includes('not registered') ||
-  //     msg.includes('does not exist')
-  //   );
-  // };
-
-  const isUserNotFound = (result) => {
-  return result?.success === false && result?.code === 'USER_NOT_FOUND';
-};
-
-
-  // const handleEmailSignIn = async () => {
-  //   Keyboard.dismiss();
-  //   if (!emailForm.validateForm()) return;
-
-  //   setIsLoading(true);
-  //   try {
-  //     const result = await signInWithEmail(
-  //       emailForm.values.email,
-  //       emailForm.values.password
-  //     );
-
-  //     console.log('EMAIL LOGIN RESULT ===>', result);
-
-  //     if (result.success) {
-  //       showSuccess('Welcome back!');
-  //       return;
-  //     }
-
-  //     // ✅ redirect to signup (NO popup)
-  //     if (isUserNotFound(result)) {
-  //       navigation.navigate('SignUp', {
-  //         email: emailForm.values.email,
-  //       });
-  //       return;
-  //     }
-
-  //     // ❌ other errors show popup
-  //     showError(result.message || 'Invalid email or password');
-  //   } catch (error) {
-  //     showError('Something went wrong. Please try again.');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const handleEmailSignIn = async () => {
-  Keyboard.dismiss();
-  if (!emailForm.validateForm()) return;
+    Keyboard.dismiss();
+    if (!emailForm.validateForm()) return;
 
-  setIsLoading(true);
-  try {
-    const result = await signInWithEmail(
-      emailForm.values.email,
-      emailForm.values.password
-    );
+    setIsLoading(true);
+    try {
+      const result = await signInWithEmail(
+        emailForm.values.email,
+        emailForm.values.password
+      );
 
-    console.log("EMAIL LOGIN RESULT ===>", result);
+      console.log('EMAIL LOGIN RESULT ===>', result);
 
-    // ✅ success
-   if (result?.success === true) {
-  showSuccess("Welcome back!");
+      // ✅ success
+      if (result?.success === true) {
+        showSuccess('Welcome back!');
+        return;
+      }
+
+      // ✅ USER NOT FOUND => POPUP then redirect to signup
+      if (result?.success === false && result?.code === 'USER_NOT_FOUND') {
+        Alert.alert(
+          'Account not found',
+          'This email is not registered. Please create a new account.',
+          [
+            {
+              text: 'Register',
+              onPress: () =>
+                navigation.navigate('SignUp', { email: emailForm.values.email }),
+            },
+            { text: 'Cancel', style: 'cancel' },
+          ]
+        );
+        return;
+      }
+
+      if (result?.success === false && result?.code === "APPROVAL_PENDING") {
+  navigation.replace("ApprovalPending", {
+    phone: result?.data?.user?.phone || "",
+    name: result?.data?.user?.name || "",
+  });
   return;
 }
 
-if (result?.success === false && result?.code === "USER_NOT_FOUND") {
-  navigation.navigate("SignUp", { email: emailForm.values.email });
-  return;
-}
 
-showError(result?.message || "Login failed");
-
-  } catch (error) {
-    showError("Something went wrong. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+      // ❌ other errors
+      showError(result?.message || 'Login failed');
+    } catch (error) {
+      showError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -255,7 +220,7 @@ showError(result?.message || "Login failed");
                 label="Email Address"
                 placeholder="Enter your email"
                 value={emailForm.values.email}
-                onChangeText={(text) => emailForm.handleChange('email', text)}
+                onChangeText={text => emailForm.handleChange('email', text)}
                 onBlur={() => emailForm.handleBlur('email')}
                 error={emailForm.touched.email ? emailForm.errors.email : null}
                 keyboardType="email-address"
@@ -270,14 +235,10 @@ showError(result?.message || "Login failed");
                 label="Password"
                 placeholder="Enter your password"
                 value={emailForm.values.password}
-                onChangeText={(text) =>
-                  emailForm.handleChange('password', text)
-                }
+                onChangeText={text => emailForm.handleChange('password', text)}
                 onBlur={() => emailForm.handleBlur('password')}
                 error={
-                  emailForm.touched.password
-                    ? emailForm.errors.password
-                    : null
+                  emailForm.touched.password ? emailForm.errors.password : null
                 }
                 type="password"
                 leftIcon="lock"
@@ -299,7 +260,7 @@ showError(result?.message || "Login failed");
                 label="Mobile Number"
                 placeholder="Enter registered mobile number"
                 value={phoneForm.values.phone}
-                onChangeText={(text) => phoneForm.handleChange('phone', text)}
+                onChangeText={text => phoneForm.handleChange('phone', text)}
                 onBlur={() => phoneForm.handleBlur('phone')}
                 error={phoneForm.touched.phone ? phoneForm.errors.phone : null}
                 keyboardType="phone-pad"

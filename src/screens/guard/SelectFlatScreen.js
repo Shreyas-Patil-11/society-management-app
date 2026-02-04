@@ -1,7 +1,4 @@
-// // /**
-// //  * Select Flat Screen
-// //  * * Step 2 of Manual Lookup
-// //  */
+
 
 import React, { useState, useEffect } from 'react';
 import {

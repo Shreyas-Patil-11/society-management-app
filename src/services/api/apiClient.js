@@ -79,7 +79,7 @@ export const apiClient = {
   get: (url) => apiRequest(url, { method: HTTP_METHODS.GET }),
   post: (url, data) => apiRequest(url, { method: HTTP_METHODS.POST, data }),
   put: (url, data) => apiRequest(url, { method: HTTP_METHODS.PUT, data }),
-  del: (url) => apiRequest(url, { method: HTTP_METHODS.DELETE }),
+  delete: (url) => apiRequest(url, { method: HTTP_METHODS.DELETE }),
 };
 
 export default apiClient;

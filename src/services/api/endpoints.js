@@ -166,20 +166,32 @@ export const SERVICE_ENDPOINTS = {
 /**
  * Household Endpoints
  */
+// export const HOUSEHOLD_ENDPOINTS = {
+//   FAMILY: `${BASE_URL}/household/family`,
+//   ADD_FAMILY: `${BASE_URL}/household/family/add`,
+//   UPDATE_FAMILY: (id) => `${BASE_URL}/household/family/${id}/update`,
+//   REMOVE_FAMILY: (id) => `${BASE_URL}/household/family/${id}/remove`,
+//   HELPS: `${BASE_URL}/household/helps`,
+//   ADD_HELP: `${BASE_URL}/household/helps/add`,
+//   UPDATE_HELP: (id) => `${BASE_URL}/household/helps/${id}/update`,
+//   REMOVE_HELP: (id) => `${BASE_URL}/household/helps/${id}/remove`,
+//   VEHICLES: `${BASE_URL}/household/vehicles`,
+//   ADD_VEHICLE: `${BASE_URL}/household/vehicles/add`,
+//   UPDATE_VEHICLE: (id) => `${BASE_URL}/household/vehicles/${id}/update`,
+//   REMOVE_VEHICLE: (id) => `${BASE_URL}/household/vehicles/${id}/remove`,
+//   ENTRY_LOGS: `${BASE_URL}/household/entry-logs`,
+// };
+
+/**
+ * Household Endpoints
+ * Mapped to your provided backend routes:
+ * GET /api/household
+ * POST /api/household
+ * DELETE /api/household/:id
+ */
 export const HOUSEHOLD_ENDPOINTS = {
-  FAMILY: `${BASE_URL}/household/family`,
-  ADD_FAMILY: `${BASE_URL}/household/family/add`,
-  UPDATE_FAMILY: (id) => `${BASE_URL}/household/family/${id}/update`,
-  REMOVE_FAMILY: (id) => `${BASE_URL}/household/family/${id}/remove`,
-  HELPS: `${BASE_URL}/household/helps`,
-  ADD_HELP: `${BASE_URL}/household/helps/add`,
-  UPDATE_HELP: (id) => `${BASE_URL}/household/helps/${id}/update`,
-  REMOVE_HELP: (id) => `${BASE_URL}/household/helps/${id}/remove`,
-  VEHICLES: `${BASE_URL}/household/vehicles`,
-  ADD_VEHICLE: `${BASE_URL}/household/vehicles/add`,
-  UPDATE_VEHICLE: (id) => `${BASE_URL}/household/vehicles/${id}/update`,
-  REMOVE_VEHICLE: (id) => `${BASE_URL}/household/vehicles/${id}/remove`,
-  ENTRY_LOGS: `${BASE_URL}/household/entry-logs`,
+  BASE: `${BASE_URL}/household`, 
+  REMOVE: (id) => `${BASE_URL}/household/${id}`,
 };
 
 /**
@@ -224,6 +236,8 @@ export const SUPPORT_ENDPOINTS = {
   TICKETS: `${BASE_URL}/support/tickets`,
   TICKET_DETAILS: (id) => `${BASE_URL}/support/tickets/${id}`,
 };
+
+
 
 export default {
   AUTH: AUTH_ENDPOINTS,

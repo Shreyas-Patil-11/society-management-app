@@ -1,5 +1,4 @@
 
-
 /**
  * Resident Home Screen
  * Features: Dashboard, Quick Actions, Visitor Log
@@ -76,10 +75,10 @@ const HomeScreen = () => {
   const [visitors, setVisitors] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState(null); // To store backend errors
+  const [errorMsg, setErrorMsg] = useState(null); 
 
   const fetchDashboardData = async () => {
-    setErrorMsg(null); // Reset error
+    setErrorMsg(null); 
     try {
       const result = await getResidentVisitors();
       
@@ -99,7 +98,6 @@ const HomeScreen = () => {
         mappedData.sort((a, b) => b.rawDate - a.rawDate);
         setVisitors(mappedData.slice(0, 5)); 
       } else {
-        // If success is false, capture the message (e.g., "Flat is not assigned yet")
         if (result.message) {
           setErrorMsg(result.message);
         }
@@ -126,9 +124,7 @@ const HomeScreen = () => {
   };
 
   const handleQuickAction = (route) => {
-    // Check for specific routes or show placeholders
     if (['AllowGuest', 'AllowCab', 'AllowDelivery', 'AllowServiceman'].includes(route)) {
-        // navigation.navigate(route); 
         console.log("Navigating to:", route);
     } else {
         console.log("Route not implemented:", route);
@@ -204,11 +200,27 @@ const HomeScreen = () => {
           </View>
         </Card>
 
+        {/* Gate Pass Status - Added from first code */}
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Gatepass')}
+          activeOpacity={1.0} 
+        >
+          <Card style={styles.gatePassCard} variant="elevated">
+            <View style={styles.gatePassContent}>
+              <Icon name="qr-code" size={32} color={colors.primary.main} />
+              <View style={styles.gatePassInfo}>
+                <Text style={styles.gatePassTitle}>My Gate Pass</Text>
+                <Text style={styles.gatePassSubtitle}>Show this at entry for quick access</Text>
+              </View>
+              <Icon name="chevron-right" size={24} color={colors.text.tertiary} />
+            </View>
+          </Card>
+        </TouchableOpacity>
+
         {/* Recent Visitors Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Visitors</Text>
           <TouchableOpacity onPress={() => navigation.navigate('ServicesTab')}>
-             {/* Using ServicesTab as a placeholder for 'All Visitors' list if it exists */}
             <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
@@ -227,7 +239,6 @@ const HomeScreen = () => {
             ))
           ) : (
              <View style={{ padding: 20, alignItems: 'center' }}>
-                {/* DISPLAY ERROR MESSAGE IF EXISTS */}
                 <Text style={{ color: errorMsg ? colors.error.main : colors.text.secondary, textAlign: 'center' }}>
                     {errorMsg || "No recent visitors"}
                 </Text>
@@ -307,6 +318,30 @@ const styles = StyleSheet.create({
     ...typography.textStyles.caption,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  // Gate Pass Styles - Added from first code
+  gatePassCard: {
+    marginBottom: spacing.lg,
+    backgroundColor: colors.primary.background,
+    borderColor: colors.primary.main,
+    borderWidth: 1,
+  },
+  gatePassContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  gatePassInfo: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  gatePassTitle: {
+    ...typography.textStyles.bodyLarge,
+    fontWeight: '600',
+    color: colors.primary.dark,
+  },
+  gatePassSubtitle: {
+    ...typography.textStyles.caption,
+    color: colors.text.secondary,
   },
   sectionHeader: {
     flexDirection: 'row',

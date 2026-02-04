@@ -26,14 +26,15 @@ import { sleep } from '../utils/helpers';
  */
 export const getSocieties = async () => {
   try {
-    // TODO: Replace with actual API call
-    // const response = await apiClient.get(SOCIETY_ENDPOINTS.LIST);
+    // ✅ Call the real backend endpoint
+    const response = await apiClient.get('/societies/public');
 
-    await sleep(800);
+    // apiClient usually returns the data directly or response.data
+    const data = response.data || response;
 
     return {
       success: true,
-      data: societies,
+      data: Array.isArray(data) ? data : [],
     };
   } catch (error) {
     console.error('Get societies error:', error);
@@ -192,6 +193,9 @@ export const joinSociety = async (joinData) => {
     };
   }
 };
+
+
+
 
 export const societyService = {
   getSocieties,
